@@ -1,0 +1,265 @@
+/* src/Result.module.css */
+
+.container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 0;
+}
+
+/* 手機才滿版，讓 footer 可以用 margin-top: auto 推到底 */
+@media (max-width: 480px) {
+  .container {
+    min-height: 100dvh;
+  }
+}
+
+.resultCard {
+  border: 2px solid #b9375d;
+  padding: 24px;
+  border-radius: 20px;
+  background-color: #fff5f7;
+  box-shadow: 0 4px 15px rgba(185, 55, 93, 0.1);
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 480px;
+  animation: slideUp 0.5s ease-out;
+  box-sizing: border-box;
+}
+
+.resultTitle {
+  color: #b9375d;
+  margin-top: 0;
+  font-size: 1.4rem;
+}
+
+.divider {
+  border: 0;
+  border-top: 0.5px solid #ffccd5;
+  margin: 15px 0;
+}
+
+.description {
+  line-height: 1.8;
+  color: #333;
+  font-size: 1.05rem;
+}
+
+/* ==========================================
+   🚀 以下為從 JSX 抽離出來的全域與排版樣式
+   ========================================== */
+
+/* 頂部導覽列固定容器 */
+.headerArea {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 10px 16px; /* 👈 給予頂部 24px 留白，讓進度條沉下來 */
+  box-sizing: border-box;
+}
+
+.stepperWrapper {
+  width: 100%;
+  max-width: 480px;
+}
+
+/* 頂部間距 */
+.spacer {
+  margin-top: 20px;
+}
+
+/* 互動區群組 */
+.interactiveGroup {
+  width: 100%;
+  max-width: 480px;
+  padding: 0 16px;
+  margin: 10px 0 25px 0;
+  box-sizing: border-box;
+}
+
+/* 次要按鈕（查看流程圖） */
+.secondaryPinkButton {
+  width: 100%;
+  padding: 14px;
+  background-color: #fff;
+  border: 1.5px solid #e89abe;
+  border-radius: 25px;
+  color: #e89abe;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+}
+
+/* 決策問卷卡片基底 */
+.surveyCard {
+  padding: 22px 20px;
+  background-color: #fff;
+  border: 1px solid #f5efe3;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+}
+
+/* 🚀 動態樣式：填寫完成後的卡片變色 */
+.surveyCardCompleted {
+  background-color: #f6ffed;
+  border-color: #b7eb8f;
+}
+
+/* 問卷標題基底 */
+.surveyTitle {
+  font-weight: 600;
+  color: #4a4a4a;
+  font-size: 1.05rem;
+  margin: 0 0 6px 0;
+}
+
+/* 🚀 動態樣式：填寫完成後的標題變綠色 */
+.surveyTitleCompleted {
+  color: #52c41a;
+}
+
+.surveySubText {
+  font-size: 0.88rem;
+  color: #8c8c8c;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+/* 主要按鈕（開始互動問卷） */
+.primaryPinkButton {
+  width: 80%;
+  padding: 12px 24px;
+  background-color: #e89abe;
+  border: none;
+  border-radius: 22px;
+  color: #fff;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 底部操作按鈕區 */
+.footerButtonArea {
+  width: 100%;
+  max-width: 480px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  margin-top: auto;
+  margin-bottom: 30px; /* 電腦維持原設定 */
+}
+
+/* ✅ 手機：貼底固定 + 防 home bar 遮擋 */
+@media (max-width: 480px) {
+  .footerButtonArea {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    border-top: 1px solid #f5f5f5;
+    padding: 16px 16px 32px 16px;
+    margin-bottom: 0;
+  }
+}
+
+/* ==========================================
+   📦 Modal 彈出視窗樣式
+   ========================================== */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modalContent {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modalTextTitle {
+  margin: 0;
+  color: #4a4a4a;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #999;
+}
+
+.modalBody {
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.modalBody img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.modalFooter {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.modalPrimaryButton {
+  flex: 1;
+  padding: 12px;
+  background-color: #e89abe;
+  border: none;
+  border-radius: 20px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modalSecondaryButton {
+  flex: 1;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border: none;
+  border-radius: 20px;
+  color: #666;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

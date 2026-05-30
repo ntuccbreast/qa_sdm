@@ -1,0 +1,115 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --main-pink: #f59eb0;
+  --border-pink: #f0b4c0;
+  --text-gray: #333;
+  --container-spacing: 20px; /* 定義統一的間距 */
+  --font-family: "Noto Sans TC", sans-serif;
+}
+
+button {
+  font-family: var(--font-family);
+}
+
+html {
+  height: auto;
+  min-height: 100%;
+  /* 確保切換時不出現滑動動畫，直接跳轉到頂部最穩 */
+  scroll-behavior: auto !important;
+}
+
+/* 移除 body 的 padding-top 固定值，改用更彈性的方式 */
+body {
+  font-family:
+    "Noto Sans TC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #fff;
+  font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: visible;
+  scroll-behavior: auto !important;
+}
+
+/* 核心響應式容器 */
+.home-container,
+.blank-layout,
+.main-layout-container {
+  width: 100% !important; /* 在手機上自動滿版 */
+  max-width: 500px; /* 在大螢幕上限制最大寬度，避免內容太散 */
+  margin: 0 auto;
+  padding: 20px 20px !important;
+  text-align: center;
+  box-sizing: border-box; /* 確保 padding 不會撐破寬度 */
+}
+
+/* 標題響應式字體大小 */
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: var(--text-gray);
+  font-weight: bold;
+}
+
+/* 範例：確保 Hero 圖片容器有固定高度或比例 */
+.hero-image-container {
+  min-height: 200px; /* 根據您的圖片大小設定 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain; /* 避免變形 */
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden; /* 防止整頁滾動 */
+}
+
+/* 手機版微調 (螢幕寬度小於 480px) */
+@media (max-width: 480px) {
+  body {
+    padding-top: 0; /* 手機上上方留白縮小 */
+  }
+
+  h2 {
+    font-size: 1.25rem; /* 手機上標題稍微縮小一點點 */
+  }
+
+  .home-container {
+    padding: 10px 15px; /* 手機上左右間距縮小，爭取空間 */
+  }
+
+  html,
+  body,
+  #root {
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
+
+input[type="date"] {
+  -webkit-appearance: none !important;
+}

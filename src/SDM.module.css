@@ -1,0 +1,116 @@
+/* SDM.module.css */
+
+.videoSection {
+  flex: 0 0 auto; /* 影片區固定高度 */
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background-color: #000;
+}
+
+.theatreVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contentSection {
+  flex: 1; /* 🌟 強制填滿剩餘空間 */
+  min-height: 0;
+  padding: 24px;
+  overflow-y: auto; /* 🌟 超出空間時在此區塊內部滾動 */
+  min-height: 0; /* 🌟 核心：告訴瀏覽器「你可以縮小，不要被內容撐開」 */
+  background-color: #fff;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.buttonWrapper {
+  flex: 0 0 auto; /* 🌟 強制固定在底部，不隨內容伸縮 */
+  padding: 20px;
+  border-top: 1px solid #f0f0f0;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ================= 字幕與按鈕樣式 (保持一致) ================= */
+.controlBtnTopRight {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  z-index: 3;
+  cursor: pointer;
+}
+
+.subtitleOverlay {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 88%;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 8px 14px;
+  border-radius: 10px;
+  z-index: 2;
+}
+
+.subtitleText {
+  color: #ffffff;
+  font-size: 0.95rem;
+  margin: 0;
+  text-align: center;
+}
+
+.audioBadge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.75rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audioDot {
+  width: 8px;
+  height: 8px;
+  background-color: #f48fb1;
+  border-radius: 50%;
+  animation: pulse 1.4s infinite;
+}
+.audioDotPaused {
+  width: 8px;
+  height: 8px;
+  background-color: #ffb74d;
+  border-radius: 50%;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+}

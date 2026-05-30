@@ -1,0 +1,125 @@
+/* Selections.module.css */
+
+/* 隱藏外層多餘元素 */
+:global([class*="hero"]),
+:global([class*="avatar"]) {
+  display: none !important;
+}
+
+.videoSection {
+  flex: 0 0 auto;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background-color: #000;
+}
+
+.theatreVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contentSection {
+  flex: 1; /* 佔據中間剩餘空間 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow-y: auto; /* 選項過多時自動捲動 */
+  min-height: 0; /* 關鍵：防止撐開卡片 */
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.buttonWrapper {
+  flex: 0 0 auto; /* 確保不被壓縮，釘在底部 */
+  padding: 20px;
+  border-top: 1px solid #f0f0f0;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ================= 字幕與按鈕樣式 (與 Home 保持一致) ================= */
+.controlBtnTopRight {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  z-index: 3;
+}
+
+.subtitleOverlay {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 88%;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 8px 14px;
+  border-radius: 10px;
+  z-index: 2;
+}
+
+.subtitleText {
+  color: #ffffff;
+  font-size: 0.95rem;
+  margin: 0;
+  text-align: center;
+}
+
+.audioBadge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.75rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audioDot {
+  width: 8px;
+  height: 8px;
+  background-color: #f48fb1;
+  border-radius: 50%;
+  animation: pulse 1.4s infinite;
+}
+
+.audioDotPaused {
+  width: 8px;
+  height: 8px;
+  background-color: #ffb74d;
+  border-radius: 50%;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+}

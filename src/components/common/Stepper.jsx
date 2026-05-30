@@ -1,0 +1,110 @@
+import React from "react";
+import {
+  Stepper as MuiStepper,
+  Step,
+  StepLabel,
+  Box,
+  styled,
+} from "@mui/material";
+
+// 自定義 StepLabel 字體大小
+const StyledStepLabel = styled(StepLabel)({
+  "& .MuiStepLabel-label": {
+    fontSize: "0.85rem",
+    fontWeight: 500,
+    color: "#999",
+  },
+  "& .MuiStepLabel-label.Mui-active": {
+    color: "#f59eb0",
+    fontWeight: "bold",
+  },
+  "& .MuiStepLabel-label.Mui-completed": {
+    color: "#666",
+  },
+});
+
+const Stepper = ({ topicKey, currentId, isConflictMode }) => {
+  // 1. 定義不同主題的步驟
+  const THEME_STEPS = {
+    dcis: ["手術選擇", "治療流程體驗", "決策建議"],
+    bctsm: ["準備開始體驗", "治療流程體驗", "價值觀評估", "決策建議"],
+    //stvab: ["方案說明", "偏好釐清", "建議結果"],
+    //reconstruction: ["時間評估", "需求分析", "建議結果"]
+  };
+
+  const steps = THEME_STEPS[topicKey] || ["進行中"];
+
+  // 2. 根據 currentId 判斷目前在哪一個 index (ActiveStep)
+  const getActiveStep = () => {
+    if (isConflictMode) return steps.length - 1; // 最終建議階段
+
+    if (topicKey === "bctsm") {
+      if (currentId === "BCTSM_START") return 0;
+      if (
+        currentId.startsWith("BCT_") ||
+        currentId.startsWith("SM_") ||
+        currentId.includes("CASE")
+      )
+        return 1;
+      if (currentId.startsWith("Q_")) return 2;
+    }
+
+    if (topicKey === "dcis") {
+      if (currentId === "DCIS_Q1") return 0;
+      if (
+        currentId.includes("DCIS_") &&
+        (currentId.includes("_BCT") || currentId.includes("_SLN"))
+      )
+        return 1;
+    }
+
+    return 0; // 預設第一步
+  };
+
+  const activeStep = getActiveStep();
+
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: "480px",
+        margin: "0 auto", // 👈 左右 auto 達成置中，mb: 4 換成 32px
+        boxSizing: "border-box",
+      }}
+    >
+      <MuiStepper
+        activeStep={activeStep}
+        alternativeLabel
+        sx={{
+          "& .MuiStepIcon-root": {
+            color: "#eee", // 未開始的圓圈顏色
+            fontSize: "1.5rem",
+          },
+          "& .MuiStepIcon-root.Mui-active": {
+            color: "#f59eb0", // 進行中的圓圈顏色 (您的主色)
+          },
+          "& .MuiStepIcon-root.Mui-completed": {
+            color: "#f59eb0", // 已完成的圓圈顏色
+          },
+          "& .MuiStepConnector-line": {
+            borderColor: "#eee", // 線條預設顏色
+          },
+          "& .MuiStepConnector-root.Mui-active .MuiStepConnector-line": {
+            borderColor: "#f59eb0", // 進行中/已完成的線條顏色
+          },
+          "& .MuiStepConnector-root.Mui-completed .MuiStepConnector-line": {
+            borderColor: "#f59eb0",
+          },
+        }}
+      >
+        {steps.map((stepName) => (
+          <Step key={stepName}>
+            <StyledStepLabel>{stepName}</StyledStepLabel>
+          </Step>
+        ))}
+      </MuiStepper>
+    </Box>
+  );
+};
+
+export default Stepper;
