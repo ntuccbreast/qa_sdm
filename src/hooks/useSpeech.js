@@ -30,30 +30,54 @@ export function useSpeech() {
     window.speechSynthesis.cancel();
     clearKeepAlive();
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.rate = rate;
+    // ✅ 修正：實際建立並發音的函式，確保 voices 已載入後才執行
+    const doSpeak = () => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      utterance.rate = rate;
 
-    utterance.onstart = () => {
-      startKeepAlive();
-      onStart?.();
+      // ✅ 修正：明確選取中文語音
+      // iOS Safari 系統語言為英文時，若不指定 voice 會 fallback 成英文朗讀
+      const voices = window.speechSynthesis.getVoices();
+      const zhVoice =
+        voices.find((v) => v.lang === "zh-TW") ||
+        voices.find((v) => v.lang === "zh-HK") ||
+        voices.find((v) => v.lang === "zh-CN") ||
+        voices.find((v) => v.lang.startsWith("zh"));
+      if (zhVoice) utterance.voice = zhVoice;
+
+      utterance.onstart = () => {
+        startKeepAlive();
+        onStart?.();
+      };
+
+      utterance.onboundary = (e) => {
+        onBoundary?.(e);
+      };
+
+      utterance.onend = () => {
+        clearKeepAlive();
+        onEnd?.();
+      };
+
+      utterance.onerror = (e) => {
+        clearKeepAlive();
+        onError?.(e);
+      };
+
+      window.speechSynthesis.speak(utterance);
     };
 
-    utterance.onboundary = (e) => {
-      onBoundary?.(e);
-    };
-
-    utterance.onend = () => {
-      clearKeepAlive();
-      onEnd?.();
-    };
-
-    utterance.onerror = (e) => {
-      clearKeepAlive();
-      onError?.(e);
-    };
-
-    window.speechSynthesis.speak(utterance);
+    // ✅ 修正：iOS Safari 的 getVoices() 是非同步的
+    // 若 voices 尚未載入完成，需等 onvoiceschanged 再執行
+    if (window.speechSynthesis.getVoices().length > 0) {
+      doSpeak();
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.onvoiceschanged = null;
+        doSpeak();
+      };
+    }
   }, []);
 
   const cancel = useCallback(() => {

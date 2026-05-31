@@ -80,10 +80,19 @@ const Home = () => {
     navigate("/selection");
   };
 
+  // ✅ 修正：iOS 鍵盤彈出時，延遲將輸入框捲入視窗，避免版面卡住
+  const handleInputFocus = (e) => {
+    const target = e.target;
+    setTimeout(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 400);
+  };
+
   const isFormIncomplete = !formData.userName || !formData.birthDate;
 
   return (
-    <>
+    // ✅ 修正：用 homeWrapper 讓 Home 頁面自己管理高度，不依賴 body overflow:hidden
+    <div className={styles.homeWrapper}>
       <div className={styles.videoSection}>
         <video ref={videoRef} src={eveVideo} playsInline webkit-playsinline="true" preload="auto" loop muted className={styles.theatreVideo} />
         {isPlaying && currentSubtitle && (
@@ -102,10 +111,21 @@ const Home = () => {
 
       <div className={styles.contentSection}>
         <div className={styles.inputWrapper}>
-          <Input label="請輸入您的姓名" name="userName" value={formData.userName}
-            onChange={(e) => setFormData((prev) => ({ ...prev, userName: e.target.value }))} />
-          <Input label="請輸入您的出生年月日" type="date" name="birthDate" value={formData.birthDate}
-            onChange={(e) => setFormData((prev) => ({ ...prev, birthDate: e.target.value }))} />
+          <Input
+            label="請輸入您的姓名"
+            name="userName"
+            value={formData.userName}
+            onFocus={handleInputFocus}
+            onChange={(e) => setFormData((prev) => ({ ...prev, userName: e.target.value }))}
+          />
+          <Input
+            label="請輸入您的出生年月日"
+            type="date"
+            name="birthDate"
+            value={formData.birthDate}
+            onFocus={handleInputFocus}
+            onChange={(e) => setFormData((prev) => ({ ...prev, birthDate: e.target.value }))}
+          />
         </div>
       </div>
 
@@ -115,7 +135,7 @@ const Home = () => {
           ...(isFormIncomplete ? { opacity: 0.5, filter: "grayscale(100%)", cursor: "not-allowed" } : {}),
         }}>開始使用</Button>
       </div>
-    </>
+    </div>
   );
 };
 

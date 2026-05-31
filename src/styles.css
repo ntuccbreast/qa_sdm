@@ -10,7 +10,7 @@
   --main-pink: #f59eb0;
   --border-pink: #f0b4c0;
   --text-gray: #333;
-  --container-spacing: 20px; /* 定義統一的間距 */
+  --container-spacing: 20px;
   --font-family: "Noto Sans TC", sans-serif;
 }
 
@@ -19,13 +19,10 @@ button {
 }
 
 html {
-  height: auto;
-  min-height: 100%;
-  /* 確保切換時不出現滑動動畫，直接跳轉到頂部最穩 */
+  height: 100%;
   scroll-behavior: auto !important;
 }
 
-/* 移除 body 的 padding-top 固定值，改用更彈性的方式 */
 body {
   font-family:
     "Noto Sans TC",
@@ -39,7 +36,7 @@ body {
   background-color: #fff;
   font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
   margin: 0;
-  min-height: 100vh;
+  min-height: 100%;
   position: relative;
   overflow-x: hidden;
   overflow-y: visible;
@@ -50,15 +47,14 @@ body {
 .home-container,
 .blank-layout,
 .main-layout-container {
-  width: 100% !important; /* 在手機上自動滿版 */
-  max-width: 500px; /* 在大螢幕上限制最大寬度，避免內容太散 */
+  width: 100% !important;
+  max-width: 500px;
   margin: 0 auto;
   padding: 20px 20px !important;
   text-align: center;
-  box-sizing: border-box; /* 確保 padding 不會撐破寬度 */
+  box-sizing: border-box;
 }
 
-/* 標題響應式字體大小 */
 h2 {
   font-size: 1.5rem;
   margin-bottom: 20px;
@@ -66,9 +62,8 @@ h2 {
   font-weight: bold;
 }
 
-/* 範例：確保 Hero 圖片容器有固定高度或比例 */
 .hero-image-container {
-  min-height: 200px; /* 根據您的圖片大小設定 */
+  min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,28 +73,30 @@ h2 {
 .hero-image {
   width: 100%;
   height: auto;
-  object-fit: contain; /* 避免變形 */
+  object-fit: contain;
 }
 
+/* ✅ 修正：移除 height: 100dvh + overflow: hidden 的組合 */
+/* 這個組合在 iOS 鍵盤彈出時會導致版面被壓縮錯位 */
+/* 各頁面元件改由自身的 wrapper 控制高度與滾動行為 */
 html,
 body,
 #root {
-  height: 100dvh;
-  overflow: hidden; /* 防止整頁滾動 */
+  height: 100%;
+  min-height: 100%;
 }
 
-/* 手機版微調 (螢幕寬度小於 480px) */
 @media (max-width: 480px) {
   body {
-    padding-top: 0; /* 手機上上方留白縮小 */
+    padding-top: 0;
   }
 
   h2 {
-    font-size: 1.25rem; /* 手機上標題稍微縮小一點點 */
+    font-size: 1.25rem;
   }
 
   .home-container {
-    padding: 10px 15px; /* 手機上左右間距縮小，爭取空間 */
+    padding: 10px 15px;
   }
 }
 

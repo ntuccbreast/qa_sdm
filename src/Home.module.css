@@ -1,5 +1,18 @@
 /* Home.module.css */
 
+/* ✅ 修正：Home 頁面自己管理高度，使用 100svh（small viewport height）
+   svh 在 iOS 上不會因為鍵盤彈出而重新計算，版面不會跑掉 */
+.homeWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100svh;
+  max-width: 500px;
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
+}
+
 .videoSection {
   flex: 0 0 auto;
   position: relative;
@@ -22,7 +35,6 @@
   justify-content: flex-start;
   padding: 24px;
   overflow-y: auto;
-  min-height: 0;
   width: 100%;
   box-sizing: border-box;
 }
@@ -34,7 +46,7 @@
 }
 
 .buttonWrapper {
-  flex: 0 0 auto; /* 確保按鈕區塊釘在底部 */
+  flex: 0 0 auto;
   padding: 16px 20px 32px 20px;
   border-top: 1px solid #f0f0f0;
   background: white;
@@ -84,13 +96,13 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  z-index: 10; /* 確保在最上層 */
+  z-index: 10;
 }
 
 .audioDot {
   width: 8px;
   height: 8px;
-  background-color: #f48fb1; /* 播放時的亮粉色 */
+  background-color: #f48fb1;
   border-radius: 50%;
   animation: pulse 1.4s infinite;
 }
@@ -98,9 +110,9 @@
 .audioDotPaused {
   width: 8px;
   height: 8px;
-  background-color: #ffb74d; /* 暫停時的亮橘色 */
+  background-color: #ffb74d;
   border-radius: 50%;
-  animation: none; /* 暫停時停止跳動 */
+  animation: none;
 }
 
 @keyframes pulse {
