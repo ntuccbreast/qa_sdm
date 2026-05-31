@@ -701,7 +701,7 @@ const questionsDCIS = [
     topic: "術後回診情境",
     question: `如果您住院接受部分乳房切除手術後沒有出現合併症，醫護人員協助您預約7~14天後回診，評估傷口及檢視病理報告。`,
     assistantScript: "現在，讓我來帶您體驗部分乳房切除手術的過程",
-    videoUrl: "https://www.youtube.com/watch?v=VIDEO_ID_BCT", // 請替換成 BCT 術後情境影片
+    videoUrl: "", // 請替換成 BCT 術後情境影片
     descriptionText:
       "目前是讓您了解接受部分乳房切除手術的流程，有問題都可以問我喔！",
     options: [], // 純閱讀
@@ -712,7 +712,7 @@ const questionsDCIS = [
     topic: "病理報告：原位癌",
     question: `第一種可能的結果：病理報告是<strong>原位癌</strong>，而且組織邊緣乾淨，手術已圓滿完成。`,
     assistantScript: "到了回診看報告的時候了，讓醫師來向您說明第一種可能的結果",
-    videoUrl: "https://www.youtube.com/watch?v=VIDEO_ID_NORMAL", // 報告為原位癌的影片
+    videoUrl: "", // 報告為原位癌的影片
     descriptionText:
       "目前是讓您了解接受部分乳房切除手術的流程，有問題都可以問我喔！",
     options: [],
@@ -723,7 +723,7 @@ const questionsDCIS = [
     topic: "病理報告：原位癌",
     question: `第二種可能的結果：病理報告是<strong>原位癌</strong>但組織邊緣不足夠。<br /><br />只需要再次手術將乳房組織切乾淨，不需要進行腋下淋巴結切片。`,
     assistantScript: "接著讓醫師來向您說明第二種可能的結果",
-    videoUrl: "https://www.youtube.com/watch?v=VIDEO_ID_NORMAL", // 報告為原位癌的影片
+    videoUrl: "", // 報告為原位癌的影片
     options: [],
     nextId: "DCIS_Q2_BCT_MALIGNANT",
   },
@@ -731,7 +731,7 @@ const questionsDCIS = [
     id: "DCIS_Q2_BCT_MALIGNANT",
     topic: "病理報告：惡性",
     question: `第三種可能的結果：病理報告是<strong>惡性乳癌</strong>。<br /><br />醫師解釋需要再次手術取樣淋巴結。<br /><strong>您一開始選擇只接受部分乳房切手術，如果遇到需要再次手術進行腋下淋巴結切片，您此刻的心情會是？</strong>`,
-    videoUrl: "https://www.youtube.com/watch?v=VIDEO_ID_MALIGNANT", // 報告為惡性的影片
+    videoUrl: "", // 報告為惡性的影片
     assistantScript: "接著讓醫師來向您說明第三種可能的結果",
     options: [
       {
@@ -754,7 +754,7 @@ const questionsDCIS = [
   {
     id: "DCIS_SCENARIO_SLNB",
     topic: "術後回診情境",
-    videoUrl: "https://www.youtube.com/watch?v=VIDEO_ID_SLNB", // 請替換成 SLNB 術後情境影片
+    videoUrl: "", // 請替換成 SLNB 術後情境影片
     question: `您住院接受部分乳房切除合併前哨淋巴結切片手術後沒有合併症，預約 7~14 天後回診。`,
     options: [],
     nextId: "DCIS_Q2_SLNB_MALIGNANT",
@@ -762,7 +762,7 @@ const questionsDCIS = [
   {
     id: "DCIS_Q2_SLNB_MALIGNANT",
     topic: "情境一：病理報告為惡性",
-    videoUrl: "https://www.youtube.com/watch?v=VIDEO_ID_MALIGNANT_SLNB",
+    videoUrl: "", // 請替換成 SLNB 術後情境影片
     question: `第一種可能的報告結果：<strong>惡性乳癌</strong>。<br /><br />您當初決定同時取樣淋巴結，現在手術已圓滿完成，不需再次開刀。`,
     options: [],
     nextId: "DCIS_Q2_SLN_MALIGNANT_MARGIN",
@@ -770,7 +770,7 @@ const questionsDCIS = [
   {
     id: "DCIS_Q2_SLN_MALIGNANT_MARGIN",
     topic: "病理報告：原位癌",
-    videoUrl: "https://www.youtube.com/watch?v=VIDEO_ID_NORMAL", // 報告為原位癌的影片
+    videoUrl: "", // 報告為原位癌的影片
     question: `第二種可能的結果：病理報告是<strong>惡性乳癌</strong>但組織邊緣不足夠。<br /><br />需要再次手術將乳房惡性組織切乾淨。`,
     options: [],
     nextId: "DCIS_Q3_SLNB_NORMAL_MARGIN",
@@ -778,7 +778,7 @@ const questionsDCIS = [
   {
     id: "DCIS_Q3_SLNB_NORMAL_MARGIN",
     topic: "病理報告：原位癌",
-    videoUrl: "https://www.youtube.com/watch?v=VIDEO_ID_NORMAL", // 報告為原位癌的影片
+    videoUrl: "", // 報告為原位癌的影片
     question: `第三種可能的結果：病理報告是<strong>原位癌</strong>但組織邊緣不足夠。<br /><br />需要再次手術將乳房組織切乾淨。`,
     options: [],
     nextId: "DCIS_Q3_SLNB_NORMAL",
@@ -786,7 +786,7 @@ const questionsDCIS = [
   {
     id: "DCIS_Q3_SLNB_NORMAL",
     topic: "情境二：病理報告為原位癌",
-    videoUrl: "https://www.youtube.com/watch?v=VIDEO_ID_NORMAL_SLNB",
+    videoUrl: "", // 報告為原位癌的影片
     question: `第四種可能的報告結果：病理報告是<strong>原位癌</strong>組織邊緣足夠。<br /><br />報告結果為原位癌，就不需要特別針對前哨淋巴結進行切片，這代表當初的淋巴切片其實是多做的處置。<br /><strong>面對多做了一個不必要的前哨淋巴結切片手術，您此刻的心情會是？</strong>`,
     options: [
       {
