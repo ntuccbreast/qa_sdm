@@ -27,15 +27,36 @@ const Home = () => {
     const cleanedText = introText.replace(/<[^>]*>/g, "").trim();
     setPureSpeechText(cleanedText);
 
+    // 斷句：依標點符號切分，每句保留起始/結束的字元位置
     const sentenceArray = cleanedText.match(/[^。？！，、]+[。？！，、]?/g) || [cleanedText];
     let acc = 0;
-    setSentences(sentenceArray.map((s) => {
-      const start = acc; acc += s.length;
-      return { text: s.trim(), start, end: acc };
-    }));
+    setSentences(
+      sentenceArray.map((s) => {
+        const start = acc;
+        acc += s.length;
+        return { text: s.trim(), start, end: acc };
+      })
+    );
 
-    return () => { cancel(); if (videoRef.current) videoRef.current.pause(); };
+    return () => {
+      cancel();
+      if (videoRef.current) videoRef.current.pause();
+    };
   }, [setHeroData]);
+
+  // ✅ 字幕更新：同時支援桌機 onboundary 與 iOS 計時器模擬
+  // sentences 存在 ref 裡，避免 speak callback 拿到舊的 closure 值
+  const sentencesRef = useRef([]);
+  useEffect(() => {
+    sentencesRef.current = sentences;
+  }, [sentences]);
+
+  const updateSubtitle = (charIndex) => {
+    const active = sentencesRef.current.find(
+      (s) => charIndex >= s.start && charIndex < s.end
+    );
+    if (active) setCurrentSubtitle(active.text);
+  };
 
   const handleTogglePlay = (e) => {
     e.stopPropagation();
@@ -53,19 +74,30 @@ const Home = () => {
       speak({
         text: pureSpeechText,
         onStart: () => {
-          setIsPlaying(true); setIsPaused(false);
-          if (videoRef.current) { videoRef.current.muted = true; videoRef.current.play().catch(() => {}); }
+          setIsPlaying(true);
+          setIsPaused(false);
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            videoRef.current.play().catch(() => {});
+          }
         },
+        // ✅ onBoundary 在桌機正常用、iOS 由 useSpeech 內的計時器呼叫
         onBoundary: (event) => {
-          const active = sentences.find((s) => event.charIndex >= s.start && event.charIndex < s.end);
-          if (active) setCurrentSubtitle(active.text);
+          updateSubtitle(event.charIndex);
         },
         onEnd: () => {
-          setIsPlaying(false); setIsPaused(false); setCurrentSubtitle("");
-          if (videoRef.current) { videoRef.current.pause(); videoRef.current.currentTime = 0; }
+          setIsPlaying(false);
+          setIsPaused(false);
+          setCurrentSubtitle("");
+          if (videoRef.current) {
+            videoRef.current.pause();
+            videoRef.current.currentTime = 0;
+          }
         },
         onError: () => {
-          setIsPlaying(false); setIsPaused(false); setCurrentSubtitle("");
+          setIsPlaying(false);
+          setIsPaused(false);
+          setCurrentSubtitle("");
           if (videoRef.current) videoRef.current.pause();
         },
       });
@@ -73,14 +105,21 @@ const Home = () => {
   };
 
   const handleStart = () => {
-    if (!formData.userName || !formData.birthDate) { alert("請填寫完整資料後再開始"); return; }
+    if (!formData.userName || !formData.birthDate) {
+      alert("請填寫完整資料後再開始");
+      return;
+    }
     cancel();
     if (videoRef.current) videoRef.current.pause();
-    setAllAnswers((prev) => ({ ...prev, userName: formData.userName, birthDate: formData.birthDate }));
+    setAllAnswers((prev) => ({
+      ...prev,
+      userName: formData.userName,
+      birthDate: formData.birthDate,
+    }));
     navigate("/selection");
   };
 
-  // ✅ 修正：iOS 鍵盤彈出時，延遲將輸入框捲入視窗，避免版面卡住
+  // ✅ iOS 鍵盤彈出時，延遲將輸入框捲入視窗，避免版面卡住
   const handleInputFocus = (e) => {
     const target = e.target;
     setTimeout(() => {
@@ -91,12 +130,22 @@ const Home = () => {
   const isFormIncomplete = !formData.userName || !formData.birthDate;
 
   return (
-    // ✅ 修正：用 homeWrapper 讓 Home 頁面自己管理高度，不依賴 body overflow:hidden
     <div className={styles.homeWrapper}>
       <div className={styles.videoSection}>
-        <video ref={videoRef} src={eveVideo} playsInline webkit-playsinline="true" preload="auto" loop muted className={styles.theatreVideo} />
+        <video
+          ref={videoRef}
+          src={eveVideo}
+          playsInline
+          webkit-playsinline="true"
+          preload="auto"
+          loop
+          muted
+          className={styles.theatreVideo}
+        />
         {isPlaying && currentSubtitle && (
-          <div className={styles.subtitleOverlay}><p className={styles.subtitleText}>{currentSubtitle}</p></div>
+          <div className={styles.subtitleOverlay}>
+            <p className={styles.subtitleText}>{currentSubtitle}</p>
+          </div>
         )}
         {isPlaying && (
           <div className={styles.audioBadge}>
@@ -116,7 +165,9 @@ const Home = () => {
             name="userName"
             value={formData.userName}
             onFocus={handleInputFocus}
-            onChange={(e) => setFormData((prev) => ({ ...prev, userName: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, userName: e.target.value }))
+            }
           />
           <Input
             label="請輸入您的出生年月日"
@@ -124,16 +175,26 @@ const Home = () => {
             name="birthDate"
             value={formData.birthDate}
             onFocus={handleInputFocus}
-            onChange={(e) => setFormData((prev) => ({ ...prev, birthDate: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, birthDate: e.target.value }))
+            }
           />
         </div>
       </div>
 
       <div className={styles.buttonWrapper}>
-        <Button onClick={handleStart} fullWidth style={{
-          pointerEvents: "auto",
-          ...(isFormIncomplete ? { opacity: 0.5, filter: "grayscale(100%)", cursor: "not-allowed" } : {}),
-        }}>開始使用</Button>
+        <Button
+          onClick={handleStart}
+          fullWidth
+          style={{
+            pointerEvents: "auto",
+            ...(isFormIncomplete
+              ? { opacity: 0.5, filter: "grayscale(100%)", cursor: "not-allowed" }
+              : {}),
+          }}
+        >
+          開始使用
+        </Button>
       </div>
     </div>
   );

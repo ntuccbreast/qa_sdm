@@ -1,43 +1,58 @@
 // src/hooks/useSpeech.js
-// 解決 iOS Safari speechSynthesis 長文字中斷的 bug
+// 解決 iOS Safari speechSynthesis 長文字中斷 + onboundary 不觸發的 bug
 
 import { useRef, useCallback } from "react";
 
 export function useSpeech() {
   const intervalRef = useRef(null);
+  const keepAliveRef = useRef(null);
 
   const clearKeepAlive = () => {
+    if (keepAliveRef.current) {
+      clearInterval(keepAliveRef.current);
+      keepAliveRef.current = null;
+    }
+  };
+
+  const clearSubtitleTimer = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
   };
 
-  // iOS Safari bug fix：每 10 秒暫停再繼續，防止語音自動中斷
+  // iOS Safari bug fix：每 9 秒暫停再繼續，防止語音自動中斷
   const startKeepAlive = () => {
     clearKeepAlive();
-    intervalRef.current = setInterval(() => {
+    keepAliveRef.current = setInterval(() => {
       if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
         window.speechSynthesis.pause();
         window.speechSynthesis.resume();
       }
-    }, 10000);
+    }, 9000);
   };
 
-  const speak = useCallback(({ text, lang = "zh-TW", rate = 1.0, onStart, onBoundary, onEnd, onError }) => {
+  const speak = useCallback(({
+    text,
+    lang = "zh-TW",
+    rate = 1.0,
+    onStart,
+    onBoundary,
+    onEnd,
+    onError,
+  }) => {
     if (!window.speechSynthesis || !text) return;
 
     window.speechSynthesis.cancel();
     clearKeepAlive();
+    clearSubtitleTimer();
 
-    // ✅ 修正：實際建立並發音的函式，確保 voices 已載入後才執行
     const doSpeak = () => {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang;
       utterance.rate = rate;
 
-      // ✅ 修正：明確選取中文語音
-      // iOS Safari 系統語言為英文時，若不指定 voice 會 fallback 成英文朗讀
+      // ✅ 明確選取中文語音
       const voices = window.speechSynthesis.getVoices();
       const zhVoice =
         voices.find((v) => v.lang === "zh-TW") ||
@@ -48,28 +63,48 @@ export function useSpeech() {
 
       utterance.onstart = () => {
         startKeepAlive();
+
+        // ✅ iOS onboundary 不觸發的 workaround：用計時器模擬字幕進度
+        // 中文語音約每秒讀 4~5 個字，rate=1.0 時約 4.5字/秒
+        if (onBoundary) {
+          const charsPerSecond = 4.5 * rate;
+          const startTime = Date.now();
+
+          intervalRef.current = setInterval(() => {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const charIndex = Math.floor(elapsed * charsPerSecond);
+            if (charIndex < text.length) {
+              onBoundary({ charIndex });
+            } else {
+              clearSubtitleTimer();
+            }
+          }, 150); // 每 150ms 更新一次，夠順暢又不耗效能
+        }
+
         onStart?.();
       };
 
+      // onboundary：桌機瀏覽器正常觸發時直接用，iOS 上不會觸發所以無影響
       utterance.onboundary = (e) => {
         onBoundary?.(e);
       };
 
       utterance.onend = () => {
         clearKeepAlive();
+        clearSubtitleTimer();
         onEnd?.();
       };
 
       utterance.onerror = (e) => {
         clearKeepAlive();
+        clearSubtitleTimer();
         onError?.(e);
       };
 
       window.speechSynthesis.speak(utterance);
     };
 
-    // ✅ 修正：iOS Safari 的 getVoices() 是非同步的
-    // 若 voices 尚未載入完成，需等 onvoiceschanged 再執行
+    // ✅ iOS Safari 的 getVoices() 是非同步的，需等 onvoiceschanged 觸發
     if (window.speechSynthesis.getVoices().length > 0) {
       doSpeak();
     } else {
@@ -82,6 +117,7 @@ export function useSpeech() {
 
   const cancel = useCallback(() => {
     clearKeepAlive();
+    clearSubtitleTimer();
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   }, []);
 
