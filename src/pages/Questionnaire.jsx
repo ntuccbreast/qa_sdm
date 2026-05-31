@@ -205,21 +205,42 @@ const Questionnaire = () => {
 
     const scriptText = currentQ.assistantScript || currentQ.descriptionText;
 
-    if (scriptText) {
-      setPhase(PHASE.SPEAKING);
+    if (!scriptText) {
+      setPhase(PHASE.READY);
+      return;
+    }
 
-      const cleanText = scriptText.replace(/<[^>]*>/g, "");
+    setPhase(PHASE.SPEAKING);
+    const cleanText = scriptText.replace(/<[^>]*>/g, "");
+
+    const speak = () => {
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = "zh-TW";
       utterance.rate = 1.0;
+
+      // ✅ 修正：明確挑選中文語音，修正 iOS 系統語言為英文時 fallback 的問題
+      const voices = window.speechSynthesis.getVoices();
+      const zhVoice =
+        voices.find((v) => v.lang === "zh-TW") ||
+        voices.find((v) => v.lang === "zh-HK") ||
+        voices.find((v) => v.lang.startsWith("zh"));
+      if (zhVoice) utterance.voice = zhVoice;
 
       utterance.onend = () => setPhase(PHASE.READY);
       utterance.onerror = () => setPhase(PHASE.READY);
 
       utteranceRef.current = utterance;
       synthRef.current.speak(utterance);
+    };
+
+    // ✅ 修正：iOS Safari 的 getVoices() 是非同步的，需等 onvoiceschanged 觸發
+    if (window.speechSynthesis.getVoices().length > 0) {
+      speak();
     } else {
-      setPhase(PHASE.READY);
+      window.speechSynthesis.onvoiceschanged = () => {
+        speak();
+        window.speechSynthesis.onvoiceschanged = null;
+      };
     }
 
     return () => {
@@ -827,6 +848,15 @@ const Questionnaire = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="請輸入您的問題..."
+              onFocus={() => {
+                // ✅ 修正：iOS 鍵盤彈出後延遲捲動，避免畫面跑掉
+                setTimeout(() => {
+                  inputRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "end",
+                  });
+                }, 400);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
