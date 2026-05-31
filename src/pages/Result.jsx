@@ -85,12 +85,14 @@ const Result = () => {
 
   return (
     <div className={styles.container}>
-      {/* 頂部進度條：固定不捲動 */}
-      <div className={styles.headerArea}>
-        <Stepper topicKey={topicKey} currentId="FINISH" />
-      </div>
+      {/* 頂部進度條：DCS 問卷開啟時隱藏，釋放空間 */}
+      {!isSurveyOpen && (
+        <div className={styles.headerArea}>
+          <Stepper topicKey={topicKey} currentId="FINISH" />
+        </div>
+      )}
 
-      <div className={styles.spacer}></div>
+      {!isSurveyOpen && <div className={styles.spacer}></div>}
 
       {isSurveyOpen ? (
         // ✅ 修正：DcsSurvey 的父層給 flex:1 + minHeight:0 + overflow-y:auto
@@ -170,16 +172,18 @@ const Result = () => {
         </div>
       )}
 
-      {/* 底部按鈕：固定不捲動 */}
-      <div className={styles.footerButtonArea}>
-        <Button
-          style={{ width: "100%", height: "50px", borderRadius: "25px" }}
-          onClick={() => navigate("/selection")}
-          isDisabled={!isSurveyCompleted}
-        >
-          {isSurveyCompleted ? "完成並回首頁" : "請先完成上方問卷以解鎖結束"}
-        </Button>
-      </div>
+      {/* 底部按鈕：DCS 問卷開啟時隱藏，釋放空間 */}
+      {!isSurveyOpen && (
+        <div className={styles.footerButtonArea}>
+          <Button
+            style={{ width: "100%", height: "50px", borderRadius: "25px" }}
+            onClick={() => navigate("/selection")}
+            isDisabled={!isSurveyCompleted}
+          >
+            {isSurveyCompleted ? "完成並回首頁" : "請先完成上方問卷以解鎖結束"}
+          </Button>
+        </div>
+      )}
 
       {isFlowModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsFlowModalOpen(false)}>
