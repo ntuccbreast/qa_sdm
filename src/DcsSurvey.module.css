@@ -1,8 +1,12 @@
-/* 移除所有 position: fixed / absolute */
+/* ✅ 修正：surveyContainer 改為 height: 100%，繼承父層的高度限制 */
+/* 父層（Result.jsx 的 surveyWrapper）已設 flex:1 + overflow-y:auto */
+/* 所以這裡不需要再設 overflow，只負責排版和內距 */
 .surveyContainer {
-  width: 100%; /* 填滿父容器寬度 */
+  width: 100%;
+  min-height: 100%;
   background-color: #ffffff;
-  padding: 20px; /* 根據你的需求調整間距 */
+  padding: 20px;
+  padding-bottom: 40px; /* 最後一個選項不貼底 */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -11,7 +15,7 @@
 
 .content {
   width: 100%;
-  max-width: 500px; /* 保持問卷閱讀舒適度 */
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   align-items: center;

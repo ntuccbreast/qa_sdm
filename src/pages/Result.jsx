@@ -18,7 +18,7 @@ const Result = () => {
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isSurveyCompleted, setIsSurveyCompleted] = useState(false);
-  const [speechStatus, setSpeechStatus] = useState("idle"); // "idle" | "playing" | "done"
+  const [speechStatus, setSpeechStatus] = useState("idle");
 
   const hasSpokenRef = useRef(false);
   const speechTextRef = useRef("");
@@ -41,15 +41,12 @@ const Result = () => {
     });
 
     if (hasSpokenRef.current) setSpeechStatus("done");
-
     return () => { cancel(); };
   }, [finalData, allAnswers.userName, setHeroData]);
 
-  // ✅ 使用者點擊才播，iOS keepAlive 機制由 useSpeech 處理
   const handleListenClick = (e) => {
     e.stopPropagation();
     if (!speechTextRef.current) return;
-
     speak({
       text: speechTextRef.current,
       onStart: () => setSpeechStatus("playing"),
@@ -88,6 +85,7 @@ const Result = () => {
 
   return (
     <div className={styles.container}>
+      {/* 頂部進度條：固定不捲動 */}
       <div className={styles.headerArea}>
         <Stepper topicKey={topicKey} currentId="FINISH" />
       </div>
@@ -95,21 +93,39 @@ const Result = () => {
       <div className={styles.spacer}></div>
 
       {isSurveyOpen ? (
-        <div className={styles.surveyContainer}>
-          <DcsSurvey onComplete={handleSurveyComplete} onClose={() => setIsSurveyOpen(false)} />
+        // ✅ 修正：DcsSurvey 的父層給 flex:1 + minHeight:0 + overflow-y:auto
+        // 這樣 DcsSurvey 才有明確高度限制，內容超出時可以捲動
+        <div style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
+          width: "100%",
+        }}>
+          <DcsSurvey
+            onComplete={handleSurveyComplete}
+            onClose={() => setIsSurveyOpen(false)}
+          />
         </div>
       ) : (
-        <>
+        // ✅ 修正：結果頁內容用 scrollableBody 包住，讓內容可以捲動
+        <div className={styles.scrollableBody}>
           <div className={styles.resultCard}>
             <h2 className={styles.resultTitle}>{finalData.title}</h2>
             <hr className={styles.divider} />
-            <div className={styles.description} dangerouslySetInnerHTML={{ __html: finalData.description }} />
+            <div
+              className={styles.description}
+              dangerouslySetInnerHTML={{ __html: finalData.description }}
+            />
           </div>
 
           <div className={styles.interactiveGroup}>
             {chartUrl && (
-              <button onClick={() => setIsFlowModalOpen(true)} className={styles.secondaryPinkButton}
-                style={{ marginBottom: "20px", width: "100%" }}>
+              <button
+                onClick={() => setIsFlowModalOpen(true)}
+                className={styles.secondaryPinkButton}
+                style={{ marginBottom: "20px", width: "100%" }}
+              >
                 🔍 查看您的預計治療流程
               </button>
             )}
@@ -122,28 +138,45 @@ const Result = () => {
               {!isSurveyCompleted && (
                 <>
                   {speechStatus !== "done" && (
-                    <button onClick={handleListenClick} className={styles.primaryPinkButton}
+                    <button
+                      onClick={handleListenClick}
+                      className={styles.primaryPinkButton}
                       disabled={speechStatus === "playing"}
-                      style={{ opacity: speechStatus === "playing" ? 0.5 : 1, cursor: speechStatus === "playing" ? "not-allowed" : "pointer", marginBottom: "12px" }}>
+                      style={{
+                        opacity: speechStatus === "playing" ? 0.5 : 1,
+                        cursor: speechStatus === "playing" ? "not-allowed" : "pointer",
+                        marginBottom: "12px",
+                      }}
+                    >
                       {speechStatus === "idle" && "🔊 點此聆聽結果說明"}
                       {speechStatus === "playing" && "正在說明中，請稍候..."}
                     </button>
                   )}
-                  <button onClick={() => !isSpeaking && setIsSurveyOpen(true)} className={styles.primaryPinkButton}
+                  <button
+                    onClick={() => !isSpeaking && setIsSurveyOpen(true)}
+                    className={styles.primaryPinkButton}
                     disabled={isSpeaking}
-                    style={{ opacity: isSpeaking ? 0.5 : 1, cursor: isSpeaking ? "not-allowed" : "pointer" }}>
+                    style={{
+                      opacity: isSpeaking ? 0.5 : 1,
+                      cursor: isSpeaking ? "not-allowed" : "pointer",
+                    }}
+                  >
                     {isSpeaking ? "請先聆聽上方說明" : "點此開始互動問卷"}
                   </button>
                 </>
               )}
             </div>
           </div>
-        </>
+        </div>
       )}
 
+      {/* 底部按鈕：固定不捲動 */}
       <div className={styles.footerButtonArea}>
-        <Button style={{ width: "100%", height: "50px", borderRadius: "25px" }}
-          onClick={() => navigate("/selection")} isDisabled={!isSurveyCompleted}>
+        <Button
+          style={{ width: "100%", height: "50px", borderRadius: "25px" }}
+          onClick={() => navigate("/selection")}
+          isDisabled={!isSurveyCompleted}
+        >
           {isSurveyCompleted ? "完成並回首頁" : "請先完成上方問卷以解鎖結束"}
         </Button>
       </div>
@@ -155,7 +188,9 @@ const Result = () => {
               <h3 className={styles.modalTextTitle}>您的預計治療流程</h3>
               <button onClick={() => setIsFlowModalOpen(false)} className={styles.closeButton}>✕</button>
             </div>
-            <div className={styles.modalBody}><img src={chartUrl} alt="治療流程圖" /></div>
+            <div className={styles.modalBody}>
+              <img src={chartUrl} alt="治療流程圖" />
+            </div>
             <div className={styles.modalFooter}>
               <button className={styles.modalPrimaryButton} onClick={() => window.print()}>🖨️ 列印 / 儲存 PDF</button>
               <button className={styles.modalSecondaryButton} onClick={() => setIsFlowModalOpen(false)}>關閉</button>

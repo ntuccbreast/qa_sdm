@@ -8,12 +8,16 @@
   flex-direction: column;
   align-items: center;
   padding-bottom: 0;
+  /* ✅ 修正：給 container 固定高度，讓內部 surveyWrapper 的 overflow-y 能生效 */
+  height: 100svh;
+  overflow: hidden; /* 整頁不捲，各區塊自己管理捲動 */
 }
 
-/* 手機才滿版，讓 footer 可以用 margin-top: auto 推到底 */
+/* 手機才滿版 */
 @media (max-width: 480px) {
   .container {
-    min-height: 100dvh;
+    height: 100svh;
+    min-height: unset; /* 移除原本的 min-height: 100dvh，改用 height */
   }
 }
 
@@ -48,17 +52,14 @@
   font-size: 1.05rem;
 }
 
-/* ==========================================
-   🚀 以下為從 JSX 抽離出來的全域與排版樣式
-   ========================================== */
-
 /* 頂部導覽列固定容器 */
 .headerArea {
   width: 100%;
+  flex: 0 0 auto; /* ✅ 不縮放，固定佔位 */
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 16px 10px 16px; /* 👈 給予頂部 24px 留白，讓進度條沉下來 */
+  padding: 24px 16px 10px 16px;
   box-sizing: border-box;
 }
 
@@ -69,7 +70,21 @@
 
 /* 頂部間距 */
 .spacer {
+  flex: 0 0 auto;
   margin-top: 20px;
+}
+
+/* ✅ 修正：結果頁主體內容區，可捲動 */
+.scrollableBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 8px 0;
 }
 
 /* 互動區群組 */
@@ -107,13 +122,11 @@
   transition: all 0.3s ease;
 }
 
-/* 🚀 動態樣式：填寫完成後的卡片變色 */
 .surveyCardCompleted {
   background-color: #f6ffed;
   border-color: #b7eb8f;
 }
 
-/* 問卷標題基底 */
 .surveyTitle {
   font-weight: 600;
   color: #4a4a4a;
@@ -121,7 +134,6 @@
   margin: 0 0 6px 0;
 }
 
-/* 🚀 動態樣式：填寫完成後的標題變綠色 */
 .surveyTitleCompleted {
   color: #52c41a;
 }
@@ -150,13 +162,12 @@
 .footerButtonArea {
   width: 100%;
   max-width: 480px;
+  flex: 0 0 auto; /* ✅ 固定在底部，不被擠壓 */
   padding: 0 16px;
   box-sizing: border-box;
-  margin-top: auto;
-  margin-bottom: 30px; /* 電腦維持原設定 */
+  margin-bottom: 30px;
 }
 
-/* ✅ 手機：貼底固定 + 防 home bar 遮擋 */
 @media (max-width: 480px) {
   .footerButtonArea {
     position: sticky;
@@ -168,9 +179,7 @@
   }
 }
 
-/* ==========================================
-   📦 Modal 彈出視窗樣式
-   ========================================== */
+/* Modal 彈出視窗樣式 */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -254,12 +263,6 @@
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
