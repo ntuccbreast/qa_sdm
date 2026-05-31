@@ -37,6 +37,7 @@ const Stepper = ({ topicKey, currentId, isConflictMode }) => {
   // 2. 根據 currentId 判斷目前在哪一個 index (ActiveStep)
   const getActiveStep = () => {
     if (isConflictMode) return steps.length - 1; // 最終建議階段
+    if (currentId === "FINISH") return steps.length - 1; // 結果頁永遠顯示最後一步
 
     if (topicKey === "bctsm") {
       if (currentId === "BCTSM_START") return 0;
