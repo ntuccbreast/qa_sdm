@@ -237,41 +237,100 @@ const Questionnaire = () => {
       setCompletedRoutes((prev) => new Set(prev).add("SM"));
   }, [currentId]);
 
-  // 🎥 監聽 YouTube 播放結束事件 (寬容機制)
+  // 🎥 YouTube IFrame Player API
+  const ytPlayerRef = useRef(null);
+
+  // 載入 YouTube IFrame API script（只載入一次）
   useEffect(() => {
+    if (!window.YT && !document.getElementById("yt-iframe-api")) {
+      const tag = document.createElement("script");
+      tag.id = "yt-iframe-api";
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.body.appendChild(tag);
+    }
+  }, []);
+
+  // 每次切換節點時初始化/重建播放器
+  useEffect(() => {
+    // 先同步已看過的狀態
     setIsVideoFinished(
       viewedPages.has(currentId) || answers[currentId] !== undefined,
     );
-    const handleYTMessage = (event) => {
-      console.log("any message:", event.origin, event.data);
-      if (event.origin !== "https://www.youtube.com") return;
-      console.log("YT message received:", event.data);
+
+    const videoId = currentQ?.videoUrl?.match(
+      /(?:v=|\/embed\/|youtu\.be\/)([^"&?\/\s]{11})/,
+    )?.[1];
+
+    if (!videoId) return;
+
+    // 銷毀舊播放器
+    if (ytPlayerRef.current) {
       try {
-        const data =
-          typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-
-        if (data.info?.playerState === 0 || data.playerState === 0) {
-          setIsVideoFinished(true);
-          setViewedPages((prev) => new Set(prev).add(currentId));
-        }
-
-        if (
-          data.event === "infoDelivery" &&
-          data.info?.currentTime &&
-          data.info?.duration
-        ) {
-          const timeRemaining = data.info.duration - data.info.currentTime;
-          if (timeRemaining <= 3) {
-            setIsVideoFinished(true);
-            setViewedPages((prev) => new Set(prev).add(currentId));
-          }
-        }
+        ytPlayerRef.current.destroy();
       } catch (e) {}
+      ytPlayerRef.current = null;
+    }
+
+    const markFinished = () => {
+      setIsVideoFinished(true);
+      setViewedPages((prev) => new Set(prev).add(currentId));
     };
-    window.addEventListener("message", handleYTMessage);
-    console.log("message listener registered");
-    return () => window.removeEventListener("message", handleYTMessage);
-  }, [currentId, viewedPages, answers]);
+
+    const initPlayer = () => {
+      console.log(
+        "initPlayer called, div exists:",
+        !!document.getElementById(`yt-player-${currentId}`),
+      );
+
+      if (!document.getElementById(`yt-player-${currentId}`)) return;
+      console.log("creating YT.Player...");
+      ytPlayerRef.current = new window.YT.Player(`yt-player-${currentId}`, {
+        videoId,
+        playerVars: { rel: 0, origin: window.location.origin },
+        events: {
+          onStateChange: (event) => {
+            console.log("YT onStateChange:", event.data);
+            // 0 = ended
+            if (event.data === 0) {
+              markFinished();
+              return;
+            }
+            // 剩餘時間 ≤ 3 秒也算看完
+            if (event.data === 1) {
+              try {
+                const duration = event.target.getDuration();
+                const current = event.target.getCurrentTime();
+                if (duration > 0 && duration - current <= 3) {
+                  markFinished();
+                }
+              } catch (e) {}
+            }
+          },
+        },
+      });
+    };
+
+    if (window.YT && window.YT.Player) {
+      console.log("YT already loaded, calling initPlayer");
+      initPlayer();
+    } else {
+      console.log("YT not loaded yet, setting onYouTubeIframeAPIReady");
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (prev) prev();
+        initPlayer();
+      };
+    }
+
+    return () => {
+      if (ytPlayerRef.current) {
+        try {
+          ytPlayerRef.current.destroy();
+        } catch (e) {}
+        ytPlayerRef.current = null;
+      }
+    };
+  }, [currentId, currentQ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isAllCasesViewed = viewedCases.size >= 4;
   const isBothRoutesViewed =
@@ -412,7 +471,6 @@ const Questionnaire = () => {
   const videoId = currentQ?.videoUrl?.match(
     /(?:v=|\/embed\/|youtu\.be\/)([^"&?\/\s]{11})/,
   )?.[1];
-  console.log("videoUrl:", currentQ?.videoUrl, "→ videoId:", videoId);
 
   return (
     <div className={styles.container}>
@@ -545,15 +603,11 @@ const Questionnaire = () => {
             )}
 
             {/* 1. 常駐 YouTube 影片舞台 */}
-            {videoId && (
+            {currentQ?.videoUrl && (
               <div className={styles.topVideoStage}>
-                <iframe
+                <div
+                  id={`yt-player-${currentId}`}
                   className={styles.stageIframe}
-                  src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&rel=0&widget_referrer=${window.location.origin}`}
-                  title="醫療資訊說明影片"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
                 />
               </div>
             )}
