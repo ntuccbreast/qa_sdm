@@ -24,6 +24,12 @@
   margin-bottom: auto;
 }
 
+/* 電腦版才顯示的區塊（Footer 等） */
+.desktopOnly {
+  display: block;
+  width: 100%;
+}
+
 /* 手機：真正滿版，三段固定佈局 */
 @media (max-width: 480px) {
   .layoutWrapper {
@@ -36,12 +42,19 @@
   .interactiveCard {
     width: 100%;
     max-width: 100%;
-    height: 100dvh;       /* ✅ 固定剛好一個螢幕高，不多不少 */
+    height: 100dvh;
     aspect-ratio: unset;
     max-height: unset;
     border-radius: 0;
     box-shadow: none;
     margin: 0;
-    overflow: hidden;     /* ✅ 維持 hidden，讓內部自己控制滾動 */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 手機上隱藏 Footer */
+  .desktopOnly {
+    display: none;
   }
 }

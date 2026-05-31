@@ -83,7 +83,7 @@ const Selections = () => {
   const currentSelection = SelectionData.selectionList.find((s) => s.id === selectedId);
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", overflow: "hidden" }}>
       <div className={styles.videoSection}>
         <video ref={videoRef} src={eveVideo} playsInline webkit-playsinline="true" preload="auto" loop muted className={styles.theatreVideo} />
         {isPlaying && currentSubtitle && (
@@ -115,7 +115,7 @@ const Selections = () => {
         </Button>
         <Button variant="outline" onClick={() => navigate("/")} fullWidth>⬅ 返回修改基本資料</Button>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -113,7 +113,7 @@ const SDM = () => {
   };
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", overflow: "hidden" }}>
       <style>{`
         @keyframes hint-glow { 0%,100%{transform:scale(1);box-shadow:0 2px 6px rgba(244,162,180,0.4);opacity:0.85}50%{transform:scale(1.1);box-shadow:0 2px 12px rgba(244,162,180,0.7);opacity:1} }
         .pulsing-hint{animation:hint-glow 2s infinite ease-in-out}
@@ -179,7 +179,7 @@ const SDM = () => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

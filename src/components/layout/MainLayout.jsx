@@ -11,8 +11,6 @@ const MainLayout = () => {
 
   return (
     <div className={styles.layoutWrapper}>
-      <Hero {...heroData} />
-
       <Box
         component="main"
         sx={{
@@ -21,16 +19,19 @@ const MainLayout = () => {
           justifyContent: "center",
           alignItems: "center",
           overflow: "hidden",
-          backgroundColor: "transparent", // 必須透明，才會露出外層的灰底
+          backgroundColor: "transparent",
+          width: "100%",
         }}
       >
-        {/* 這就是你的手機比例卡片 */}
         <div className={styles.interactiveCard}>
           <Outlet />
         </div>
       </Box>
 
-      <Footer />
+      {/* Footer: 電腦版顯示，手機版透過 CSS 隱藏 */}
+      <Box className={styles.desktopOnly}>
+        <Footer />
+      </Box>
     </div>
   );
 };
