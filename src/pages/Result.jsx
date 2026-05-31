@@ -6,76 +6,61 @@ import styles from "../Result.module.css";
 import { saveToSheet } from "../components/utils/googleSheetLogger";
 import DcsSurvey from "./DcsSurvey";
 import Stepper from "../components/common/Stepper";
+import { useSpeech } from "../hooks/useSpeech";
 
 const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { setHeroData, allAnswers } = useUI();
-  const { finalData, topicKey, savedDataMap, chatHistory } =
-    location.state || {};
+  const { finalData, topicKey, savedDataMap, chatHistory } = location.state || {};
+  const { speak, cancel } = useSpeech();
 
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isSurveyCompleted, setIsSurveyCompleted] = useState(false);
-
-  // 🚀 新增狀態：用於鎖定問卷直到語音播報結束
-  const [isSpeaking, setIsSpeaking] = useState(true);
+  const [speechStatus, setSpeechStatus] = useState("idle"); // "idle" | "playing" | "done"
 
   const hasSpokenRef = useRef(false);
-  const synthRef = useRef(window.speechSynthesis);
+  const speechTextRef = useRef("");
 
-  const chartUrl =
-    finalData?.flowChart ||
-    "https://sdm-5cbs.onrender.com/assets/images/default.png";
+  const chartUrl = finalData?.flowChart || "https://sdm-5cbs.onrender.com/assets/images/default.png";
 
   useEffect(() => {
     if (!finalData) return;
-
-    // 如果已經播報過，則直接解除鎖定
-    if (hasSpokenRef.current) {
-      setIsSpeaking(false);
-      return;
-    }
-
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = finalData.description || "";
     const pureDescription = tempDiv.textContent || tempDiv.innerText || "";
     const userName = allAnswers.userName || "您";
-    const speechText = `${userName}，我已為您整理好：${finalData.title}。${pureDescription}`;
+    speechTextRef.current = `${userName}，我已為您整理好：${finalData.title}。${pureDescription}`;
 
     setHeroData({
-      step: 3,
-      currentStep: 3,
-      imageUrl:
-        "https://web-production-fbb7b.up.railway.app/static/helperinside.png",
+      step: 3, currentStep: 3,
+      imageUrl: "https://web-production-fbb7b.up.railway.app/static/helperinside.png",
       title: "第三步驟：評估結果建議",
-      description: speechText,
+      description: speechTextRef.current,
     });
 
-    if (synthRef.current) {
-      synthRef.current.cancel();
-      const utterance = new SpeechSynthesisUtterance(speechText);
-      utterance.lang = "zh-TW";
+    if (hasSpokenRef.current) setSpeechStatus("done");
 
-      // 🚀 播報結束後解除鎖定
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        hasSpokenRef.current = true;
-      };
-      utterance.onerror = () => setIsSpeaking(false);
-
-      synthRef.current.speak(utterance);
-    }
-
-    return () => {
-      if (synthRef.current) synthRef.current.cancel();
-    };
+    return () => { cancel(); };
   }, [finalData, allAnswers.userName, setHeroData]);
+
+  // ✅ 使用者點擊才播，iOS keepAlive 機制由 useSpeech 處理
+  const handleListenClick = (e) => {
+    e.stopPropagation();
+    if (!speechTextRef.current) return;
+
+    speak({
+      text: speechTextRef.current,
+      onStart: () => setSpeechStatus("playing"),
+      onEnd: () => { setSpeechStatus("done"); hasSpokenRef.current = true; },
+      onError: () => { setSpeechStatus("done"); hasSpokenRef.current = true; },
+    });
+  };
 
   const handleSurveyComplete = async (finalDcsAnswers) => {
     setIsSurveyCompleted(true);
     setIsSurveyOpen(false);
-    console.log("DCS 完成，準備寫入：", finalDcsAnswers);
     try {
       const logData = {
         userName: allAnswers.userName,
@@ -86,26 +71,20 @@ const Result = () => {
         finalResult: finalData.title,
         chatHistory: JSON.stringify(
           (chatHistory || [])
-            .filter(
-              (msg) =>
-                msg.role !== "assistant" || chatHistory.indexOf(msg) !== 0,
-            )
-            .map((msg) => ({
-              role: msg.role === "user" ? "病人" : "機器人",
-              content: msg.content,
-            })),
+            .filter((msg) => msg.role !== "assistant" || chatHistory.indexOf(msg) !== 0)
+            .map((msg) => ({ role: msg.role === "user" ? "病人" : "機器人", content: msg.content })),
         ),
       };
-
-      console.log("logData：", logData); // ← 加這行
       const result = await saveToSheet(logData);
-      console.log("saveToSheet 回傳：", result); // ← 加這行
+      console.log("saveToSheet 回傳：", result);
     } catch (error) {
       console.error("資料同步失敗", error);
     }
   };
 
   if (!finalData) return null;
+
+  const isSpeaking = speechStatus !== "done";
 
   return (
     <div className={styles.container}>
@@ -117,55 +96,45 @@ const Result = () => {
 
       {isSurveyOpen ? (
         <div className={styles.surveyContainer}>
-          <DcsSurvey
-            onComplete={handleSurveyComplete}
-            onClose={() => setIsSurveyOpen(false)}
-          />
+          <DcsSurvey onComplete={handleSurveyComplete} onClose={() => setIsSurveyOpen(false)} />
         </div>
       ) : (
         <>
           <div className={styles.resultCard}>
             <h2 className={styles.resultTitle}>{finalData.title}</h2>
             <hr className={styles.divider} />
-            <div
-              className={styles.description}
-              dangerouslySetInnerHTML={{ __html: finalData.description }}
-            />
+            <div className={styles.description} dangerouslySetInnerHTML={{ __html: finalData.description }} />
           </div>
 
           <div className={styles.interactiveGroup}>
             {chartUrl && (
-              <button
-                onClick={() => setIsFlowModalOpen(true)}
-                className={styles.secondaryPinkButton}
-                style={{ marginBottom: "20px", width: "100%" }}
-              >
+              <button onClick={() => setIsFlowModalOpen(true)} className={styles.secondaryPinkButton}
+                style={{ marginBottom: "20px", width: "100%" }}>
                 🔍 查看您的預計治療流程
               </button>
             )}
 
-            <div
-              className={`${styles.surveyCard} ${isSurveyCompleted ? styles.surveyCardCompleted : ""}`}
-            >
-              <p
-                className={`${styles.surveyTitle} ${isSurveyCompleted ? styles.surveyTitleCompleted : ""}`}
-              >
-                {isSurveyCompleted
-                  ? "✅ 填寫完成！"
-                  : "最後一步：請填寫決策評估問卷"}
+            <div className={`${styles.surveyCard} ${isSurveyCompleted ? styles.surveyCardCompleted : ""}`}>
+              <p className={`${styles.surveyTitle} ${isSurveyCompleted ? styles.surveyTitleCompleted : ""}`}>
+                {isSurveyCompleted ? "✅ 填寫完成！" : "最後一步：請填寫決策評估問卷"}
               </p>
+
               {!isSurveyCompleted && (
-                <button
-                  onClick={() => !isSpeaking && setIsSurveyOpen(true)}
-                  className={styles.primaryPinkButton}
-                  disabled={isSpeaking}
-                  style={{
-                    opacity: isSpeaking ? 0.5 : 1,
-                    cursor: isSpeaking ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {isSpeaking ? "正在說明中，請稍候..." : "點此開始互動問卷"}
-                </button>
+                <>
+                  {speechStatus !== "done" && (
+                    <button onClick={handleListenClick} className={styles.primaryPinkButton}
+                      disabled={speechStatus === "playing"}
+                      style={{ opacity: speechStatus === "playing" ? 0.5 : 1, cursor: speechStatus === "playing" ? "not-allowed" : "pointer", marginBottom: "12px" }}>
+                      {speechStatus === "idle" && "🔊 點此聆聽結果說明"}
+                      {speechStatus === "playing" && "正在說明中，請稍候..."}
+                    </button>
+                  )}
+                  <button onClick={() => !isSpeaking && setIsSurveyOpen(true)} className={styles.primaryPinkButton}
+                    disabled={isSpeaking}
+                    style={{ opacity: isSpeaking ? 0.5 : 1, cursor: isSpeaking ? "not-allowed" : "pointer" }}>
+                    {isSpeaking ? "請先聆聽上方說明" : "點此開始互動問卷"}
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -173,50 +142,23 @@ const Result = () => {
       )}
 
       <div className={styles.footerButtonArea}>
-        <Button
-          style={{ width: "100%", height: "50px", borderRadius: "25px" }}
-          onClick={() => navigate("/selection")}
-          isDisabled={!isSurveyCompleted}
-        >
+        <Button style={{ width: "100%", height: "50px", borderRadius: "25px" }}
+          onClick={() => navigate("/selection")} isDisabled={!isSurveyCompleted}>
           {isSurveyCompleted ? "完成並回首頁" : "請先完成上方問卷以解鎖結束"}
         </Button>
       </div>
 
-      {/* 流程圖彈出視窗... (省略，保持原樣) */}
       {isFlowModalOpen && (
-        <div
-          className={styles.modalOverlay}
-          onClick={() => setIsFlowModalOpen(false)}
-        >
-          <div
-            className={styles.modalContent}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className={styles.modalOverlay} onClick={() => setIsFlowModalOpen(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 className={styles.modalTextTitle}>您的預計治療流程</h3>
-              <button
-                onClick={() => setIsFlowModalOpen(false)}
-                className={styles.closeButton}
-              >
-                ✕
-              </button>
+              <button onClick={() => setIsFlowModalOpen(false)} className={styles.closeButton}>✕</button>
             </div>
-            <div className={styles.modalBody}>
-              <img src={chartUrl} alt="治療流程圖" />
-            </div>
+            <div className={styles.modalBody}><img src={chartUrl} alt="治療流程圖" /></div>
             <div className={styles.modalFooter}>
-              <button
-                className={styles.modalPrimaryButton}
-                onClick={() => window.print()}
-              >
-                🖨️ 列印 / 儲存 PDF
-              </button>
-              <button
-                className={styles.modalSecondaryButton}
-                onClick={() => setIsFlowModalOpen(false)}
-              >
-                關閉
-              </button>
+              <button className={styles.modalPrimaryButton} onClick={() => window.print()}>🖨️ 列印 / 儲存 PDF</button>
+              <button className={styles.modalSecondaryButton} onClick={() => setIsFlowModalOpen(false)}>關閉</button>
             </div>
           </div>
         </div>

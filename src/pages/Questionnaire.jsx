@@ -592,20 +592,34 @@ const Questionnaire = () => {
               </p>
 
               {/* 影片狀態 Tag */}
-              {videoId && (
-                <div
-                  className={`${styles.videoStatusTag} ${isVideoFinished ? styles.videoStatusFinished : styles.videoStatusPending}`}
-                  onDoubleClick={() => {
-                    setIsVideoFinished(true);
-                    setViewedPages((prev) => new Set(prev).add(currentId));
-                  }}
-                  title="提示：雙擊此處可強制解鎖"
-                >
-                  {isVideoFinished
-                    ? "✓ 狀態：本頁影片已完整觀看完畢"
-                    : "⚠️ 狀態：請先觀看完上方影片以解鎖填寫區"}
-                </div>
-              )}
+              {videoId &&
+                (isVideoFinished ? (
+                  <div
+                    className={`${styles.videoStatusTag} ${styles.videoStatusFinished}`}
+                  >
+                    ✓ 狀態：本頁影片已完整觀看完畢
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsVideoFinished(true);
+                      setViewedPages((prev) => new Set(prev).add(currentId));
+                    }}
+                    style={{
+                      marginTop: "10px",
+                      padding: "8px 18px",
+                      backgroundColor: "#e89abe",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "20px",
+                      cursor: "pointer",
+                      fontSize: "0.9rem",
+                      fontWeight: "600",
+                    }}
+                  >
+                    ✅ 我已看完影片，繼續填寫
+                  </button>
+                ))}
             </div>
 
             {/* 3. 題目 */}

@@ -45,7 +45,7 @@ function App() {
 
   return (
     <UIProvider>
-      <Router>
+      <Router basename="/qa_sdm">
         <AppRoutes />
       </Router>
     </UIProvider>
