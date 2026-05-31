@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/qa_sdm/static/css/main.1a85229e.css",
-    "main.js": "/qa_sdm/static/js/main.5ac97403.js",
+    "main.css": "/qa_sdm/static/css/main.f3e16e6d.css",
+    "main.js": "/qa_sdm/static/js/main.6498e0e5.js",
     "static/media/cnb.png": "/qa_sdm/static/media/cnb.8e4c102f4d0a5f855617.png",
     "static/media/slnb.png": "/qa_sdm/static/media/slnb.18061ed15a47cf090132.png",
     "static/media/eve_sdm_talk.mp4": "/qa_sdm/static/media/eve_sdm_talk.449019047a79e302f558.mp4",
@@ -10,11 +10,11 @@
     "static/media/sm_slnb.png": "/qa_sdm/static/media/sm_slnb.346bcc61748824d2ea3b.png",
     "static/media/bct_slnb.png": "/qa_sdm/static/media/bct_slnb.b65ac0ad68ac0c796af9.png",
     "index.html": "/qa_sdm/index.html",
-    "main.1a85229e.css.map": "/qa_sdm/static/css/main.1a85229e.css.map",
-    "main.5ac97403.js.map": "/qa_sdm/static/js/main.5ac97403.js.map"
+    "main.f3e16e6d.css.map": "/qa_sdm/static/css/main.f3e16e6d.css.map",
+    "main.6498e0e5.js.map": "/qa_sdm/static/js/main.6498e0e5.js.map"
   },
   "entrypoints": [
-    "static/css/main.1a85229e.css",
-    "static/js/main.5ac97403.js"
+    "static/css/main.f3e16e6d.css",
+    "static/js/main.6498e0e5.js"
   ]
 }
