@@ -86,6 +86,34 @@ const Questionnaire = () => {
   const lastMessageRef = useRef(null);
   const prevMsgCount = useRef(messages.length);
   const isAutoScrolling = useRef(false);
+  const chatbotRef = useRef(null);
+
+  // ✅ iOS 鍵盤彈出時，用 visualViewport 動態調整 chatbot 視窗高度
+  useEffect(() => {
+    if (!isChatbotOpen) return;
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const handleResize = () => {
+      if (chatbotRef.current) {
+        chatbotRef.current.style.height = `${viewport.height}px`;
+        chatbotRef.current.style.top = `${viewport.offsetTop}px`;
+      }
+    };
+
+    viewport.addEventListener("resize", handleResize);
+    viewport.addEventListener("scroll", handleResize);
+    handleResize();
+
+    return () => {
+      viewport.removeEventListener("resize", handleResize);
+      viewport.removeEventListener("scroll", handleResize);
+      if (chatbotRef.current) {
+        chatbotRef.current.style.height = "";
+        chatbotRef.current.style.top = "";
+      }
+    };
+  }, [isChatbotOpen]);
 
   // 智慧自動捲動對話框邏輯
   useEffect(() => {
@@ -792,7 +820,7 @@ const Questionnaire = () => {
 
       {/* 🤖 滿版覆蓋式 Chatbot 容器 */}
       {isChatbotOpen && (
-        <div className={styles.chatbotOverlayWindow}>
+        <div className={styles.chatbotOverlayWindow} ref={chatbotRef}>
           {/* 頂部導覽列 */}
           <div className={styles.chatbotHeader}>
             <div className={styles.headerTitleZone}>
@@ -849,13 +877,12 @@ const Questionnaire = () => {
               onChange={(e) => setInput(e.target.value)}
               placeholder="請輸入您的問題..."
               onFocus={() => {
-                // ✅ 修正：iOS 鍵盤彈出後延遲捲動，避免畫面跑掉
                 setTimeout(() => {
-                  inputRef.current?.scrollIntoView({
+                  scrollRef.current?.scrollTo({
+                    top: scrollRef.current.scrollHeight,
                     behavior: "smooth",
-                    block: "end",
                   });
-                }, 400);
+                }, 100);
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
