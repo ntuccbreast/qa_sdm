@@ -243,7 +243,9 @@ const Questionnaire = () => {
       viewedPages.has(currentId) || answers[currentId] !== undefined,
     );
     const handleYTMessage = (event) => {
+      console.log("any message:", event.origin, event.data);
       if (event.origin !== "https://www.youtube.com") return;
+      console.log("YT message received:", event.data);
       try {
         const data =
           typeof event.data === "string" ? JSON.parse(event.data) : event.data;
@@ -267,6 +269,7 @@ const Questionnaire = () => {
       } catch (e) {}
     };
     window.addEventListener("message", handleYTMessage);
+    console.log("message listener registered");
     return () => window.removeEventListener("message", handleYTMessage);
   }, [currentId, viewedPages, answers]);
 
@@ -409,6 +412,7 @@ const Questionnaire = () => {
   const videoId = currentQ?.videoUrl?.match(
     /(?:v=|\/embed\/|youtu\.be\/)([^"&?\/\s]{11})/,
   )?.[1];
+  console.log("videoUrl:", currentQ?.videoUrl, "→ videoId:", videoId);
 
   return (
     <div className={styles.container}>
@@ -545,9 +549,10 @@ const Questionnaire = () => {
               <div className={styles.topVideoStage}>
                 <iframe
                   className={styles.stageIframe}
-                  src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&rel=0`}
+                  src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&rel=0&widget_referrer=${window.location.origin}`}
                   title="醫療資訊說明影片"
                   frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               </div>

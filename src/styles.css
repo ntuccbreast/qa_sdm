@@ -84,7 +84,7 @@ h2 {
 html,
 body,
 #root {
-  height: 100%;
+  height: 100dvh;
   overflow: hidden; /* 防止整頁滾動 */
 }
 
@@ -100,13 +100,6 @@ body,
 
   .home-container {
     padding: 10px 15px; /* 手機上左右間距縮小，爭取空間 */
-  }
-
-  html,
-  body,
-  #root {
-    height: 100dvh;
-    overflow: hidden;
   }
 }
 
