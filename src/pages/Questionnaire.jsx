@@ -98,6 +98,8 @@ const Questionnaire = () => {
       if (chatbotRef.current) {
         chatbotRef.current.style.height = `${viewport.height}px`;
         chatbotRef.current.style.top = `${viewport.offsetTop}px`;
+        chatbotRef.current.style.left = `${viewport.offsetLeft}px`;
+        chatbotRef.current.style.width = `${viewport.width}px`;
       }
     };
 
@@ -111,6 +113,8 @@ const Questionnaire = () => {
       if (chatbotRef.current) {
         chatbotRef.current.style.height = "";
         chatbotRef.current.style.top = "";
+        chatbotRef.current.style.left = "";
+        chatbotRef.current.style.width = "";
       }
     };
   }, [isChatbotOpen]);
