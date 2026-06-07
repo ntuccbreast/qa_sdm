@@ -37,14 +37,18 @@ export function useSpeech() {
   const onSubtitleRef = useRef(null);
   const phrasesRef = useRef([]);
   const iosIntervalRef = useRef(null);
-  // Tracks char position corrections coming from onboundary events
   const iosCorrectedCharRef = useRef(-1);
+  // Incremented each time speak() is called; lets onend timeouts detect stale closures
+  const utteranceGenRef = useRef(0);
 
   const clearKeepAlive = () => {
     if (keepAliveRef.current) { clearInterval(keepAliveRef.current); keepAliveRef.current = null; }
   };
   const startKeepAlive = () => {
     clearKeepAlive();
+    // On iOS, pause()+resume() can spuriously re-fire onstart/onend, resetting
+    // the subtitle loop. iOS 14+ doesn't need keepAlive anyway.
+    if (isIOS()) return;
     keepAliveRef.current = setInterval(() => {
       if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
         window.speechSynthesis.pause();
@@ -61,10 +65,12 @@ export function useSpeech() {
   // Polls every 100ms, tracking real (non-paused) elapsed time.
   // When onboundary does fire with a valid charIndex, we use it to
   // correct the estimated position so drift doesn't accumulate.
+  // elapsed starts negative to absorb the iOS TTS engine startup delay
+  // (~300ms between onstart firing and first audio phoneme on device).
   const scheduleIosSubtitles = (rate) => {
     clearIosTimers();
     iosCorrectedCharRef.current = -1;
-    let elapsed = 0;
+    let elapsed = -0.3;
     let lastTick = Date.now();
     let lastPhraseText = null;
 
@@ -76,10 +82,12 @@ export function useSpeech() {
       lastTick = now;
 
       const estimated = Math.floor(elapsed * IOS_CHARS_PER_SEC * (rate || 1.0));
-      // If onboundary gave us a correction, use whichever is further ahead
       const charPos = iosCorrectedCharRef.current > estimated
         ? iosCorrectedCharRef.current
         : estimated;
+
+      // Still in startup latency window — don't flash first phrase before audio begins
+      if (charPos < 0) return;
 
       const phrase =
         phrasesRef.current.find((p) => charPos >= p.start && charPos < p.end) ??
@@ -99,9 +107,12 @@ export function useSpeech() {
 
     window.speechSynthesis.cancel();
     clearKeepAlive();
+    clearIosTimers(); // ensure clean state so new onstart can always restart the interval
     onSubtitleRef.current = onSubtitle || null;
     const cleanText = text.replace(/<[^>]*>/g, "");
     phrasesRef.current = buildPhrases(cleanText);
+    utteranceGenRef.current += 1;
+    const myGen = utteranceGenRef.current;
 
     const doSpeak = () => {
       // Use clean text so charIndex aligns exactly with our phrase ranges
@@ -120,9 +131,9 @@ export function useSpeech() {
       utterance.onstart = () => {
         startKeepAlive();
         onStart?.();
-        if (isIOS()) {
-          // Always use polling loop on iOS — onboundary is unreliable for zh-TW.
-          // onboundary events (when they do fire) will correct the estimate.
+        if (isIOS() && !iosIntervalRef.current) {
+          // Guard: if interval already running (spurious iOS re-fire of onstart),
+          // don't restart — would reset elapsed to 0 mid-speech causing subtitle snap.
           scheduleIosSubtitles(rate);
         }
       };
@@ -145,12 +156,27 @@ export function useSpeech() {
 
       utterance.onend = () => {
         clearKeepAlive();
-        clearIosTimers();
-        onSubtitleRef.current?.("");
-        onEnd?.();
+        if (isIOS()) {
+          // iOS fires spurious onend mid-speech then continues; use a timeout + gen
+          // check to confirm speech truly ended before cleaning up and calling onEnd.
+          // This prevents the interval from being cleared mid-speech (which would let
+          // the next onstart restart it from elapsed=0, snapping subtitle to phrase 0).
+          setTimeout(() => {
+            if (utteranceGenRef.current === myGen && !window.speechSynthesis.speaking) {
+              clearIosTimers();
+              onSubtitleRef.current?.("");
+              onEnd?.();
+            }
+          }, 200);
+        } else {
+          clearIosTimers();
+          onSubtitleRef.current?.("");
+          onEnd?.();
+        }
       };
 
       utterance.onerror = (e) => {
+        if (e.error === "interrupted") return; // fired when cancel() preempts; not a real error
         clearKeepAlive();
         clearIosTimers();
         onSubtitleRef.current?.("");
