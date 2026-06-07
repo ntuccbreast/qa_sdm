@@ -1,105 +1,49 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap");
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
   --main-pink: #f59eb0;
   --border-pink: #f0b4c0;
   --text-gray: #333;
-  --container-spacing: 20px;
   --font-family: "Noto Sans TC", sans-serif;
 }
 
-button {
-  font-family: var(--font-family);
-}
+button { font-family: var(--font-family); }
 
-html {
+/* ✅ 核心：html/body/#root 全部鎖死視窗大小，不讓任何內容撐開 */
+html, body, #root {
+  width: 100%;
   height: 100%;
-  scroll-behavior: auto !important;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  font-family:
-    "Noto Sans TC",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", "Heiti TC", sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #fff;
-  font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
-  margin: 0;
-  min-height: 100%;
-  position: relative;
-  overflow-x: hidden;
-  overflow-y: visible;
+  background-color: #f5f5f5;
   scroll-behavior: auto !important;
-}
-
-/* 核心響應式容器 */
-.home-container,
-.blank-layout,
-.main-layout-container {
-  width: 100% !important;
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 20px 20px !important;
-  text-align: center;
-  box-sizing: border-box;
-}
-
-h2 {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  color: var(--text-gray);
-  font-weight: bold;
-}
-
-.hero-image-container {
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.hero-image {
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-}
-
-/* ✅ 修正：移除 height: 100dvh + overflow: hidden 的組合 */
-/* 這個組合在 iOS 鍵盤彈出時會導致版面被壓縮錯位 */
-/* 各頁面元件改由自身的 wrapper 控制高度與滾動行為 */
-html,
-body,
-#root {
-  height: 100%;
-  min-height: 100%;
-}
-
-@media (max-width: 480px) {
-  body {
-    padding-top: 0;
-  }
-
-  h2 {
-    font-size: 1.25rem;
-  }
-
-  .home-container {
-    padding: 10px 15px;
-  }
 }
 
 input[type="date"] {
   -webkit-appearance: none !important;
+}
+
+/* 💡 Hint trigger icon — shared style for inline hint bubbles in question HTML */
+.hint-icon {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #fff5f7, #ffe3e8);
+  border: 1px solid #f4a2b4;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 5px rgba(244, 162, 180, 0.3);
+  vertical-align: middle;
 }

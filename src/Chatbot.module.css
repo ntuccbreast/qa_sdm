@@ -1,34 +1,65 @@
-.container {
+/* Outer: fills viewport, centres the phone widget on desktop */
+.layoutWrapper {
+  width: 100%;
+  height: 100svh;
   display: flex;
-  flex-direction: column;
-  height: 650px; /* 調整適合的高度 */
-  max-width: 600px;
-  margin: 0 auto;
-  background: #f9f9f9;
-  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
   overflow: hidden;
-  border: 1px solid #eee;
-  touch-action: pan-y;
-  overscroll-behavior: none !important;
 }
 
+/* Phone-sized container — mirrors MainLayout's phoneWrapper */
+.phoneWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 390px;
+  height: 750px;
+  flex-shrink: 0;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  background: #f9f9f9;
+}
+
+/* Mobile: go full-screen */
+@media (max-width: 480px) {
+  .layoutWrapper {
+    background-color: #ffffff;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+  .phoneWrapper {
+    width: 100%;
+    height: 100svh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* ── Chat content ── */
+
 .warningBanner {
+  flex-shrink: 0;
   background: #f0dee2;
   color: #b9375d;
   padding: 8px 12px;
-  font-size: 0.85rem;
-  border-bottom: 1px solid #b9375d;
+  font-size: 0.8rem;
+  border-bottom: 1px solid #e8a0b0;
 }
 
+/* Chat messages area — fills remaining vertical space */
 .chatBox {
   flex: 1;
+  min-height: 0;
   padding: 15px 0;
   overflow-y: scroll;
-  -webkit-overflow-scrolling: touch; /* 讓 iOS 滑動更順暢 */
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   display: flex;
   flex-direction: column;
   gap: 15px;
+  touch-action: pan-y;
 }
 
 .messageWrapper {
@@ -38,14 +69,8 @@
   scroll-margin-top: 20px;
 }
 
-.aiWrapper {
-  align-self: flex-start;
-}
-
-.userWrapper {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
+.aiWrapper  { align-self: flex-start; }
+.userWrapper { align-self: flex-end; flex-direction: row-reverse; }
 
 .avatar {
   width: 35px;
@@ -57,16 +82,16 @@
   position: relative;
   padding: 10px 15px;
   border-radius: 18px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .bubble a {
-  display: inline-block; /* 讓連結稍微有點區塊感 */
+  display: inline-block;
   margin-top: 4px;
-  color: #007bff; /* 建議改成明顯的藍色 */
+  color: #007bff;
   text-decoration: underline;
 }
 
@@ -75,18 +100,16 @@
   border: 1px solid #ddd;
   margin-left: 2px;
 }
-/* AI 氣泡的小尾巴 */
 .aiWrapper .bubble::before {
   content: "";
   position: absolute;
   top: 10px;
-  left: -9px; /* 往左移出氣泡 */
+  left: -9px;
   width: 0;
   height: 0;
-  /* 畫出指向左下角的三角形 */
   border-right: 10px solid #ffffff;
   border-top: 10px solid transparent;
-  filter: drop-shadow(-1px 1px 0px #ddd); /* 模擬邊框顏色 */
+  filter: drop-shadow(-1px 1px 0px #ddd);
 }
 
 .userWrapper .bubble {
@@ -94,31 +117,30 @@
   color: white;
   margin-right: 10px;
 }
-/* 使用者氣泡的小尾巴 */
 .userWrapper .bubble::after {
   content: "";
   position: absolute;
   top: 10px;
-  right: -8px; /* 往右移出氣泡 */
+  right: -8px;
   width: 0;
   height: 0;
-  /* 畫出指向右上角的三角形 */
   border-left: 10px solid #e08a9c;
   border-bottom: 10px solid transparent;
 }
 
+/* Input row */
 .inputArea {
-  padding: 15px;
-  position: sticky;
+  flex-shrink: 0;
+  padding: 10px 12px;
   background: white;
   border-top: 1px solid #eee;
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .inputArea textarea {
   flex: 1;
-  padding: 10px;
+  padding: 8px 10px;
   border: 1px solid #ddd;
   border-radius: 8px;
   resize: none;
@@ -126,44 +148,45 @@
   font-family: inherit;
   line-height: 1.5;
 }
-/* 修改輸入框在「點到（聚焦）」時的樣子 */
 .inputArea textarea:focus {
-  outline: none; /* 移除瀏覽器預設的橘色/藍色外框 */
+  outline: none;
   border-width: 1.5px;
-  border-color: #e08a9c; /* 🚀 換成你主題的粉色 */
+  border-color: #e08a9c;
 }
-
 .inputArea button {
-  padding: 0 24px; /* 增加左右內邊距來控制寬度感 */
-  width: auto; /* 預設即為 auto */
-  flex-shrink: 0; /* 依然建議加上，避免被 textarea 擠壓 */
-}
-.exitArea {
-  width: 100%;
-  max-width: 600px;
-}
-.pageWrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  gap: 24px; /* 聊天視窗與退出按鈕之間的間隔 */
+  padding: 0 18px;
+  width: auto;
+  flex-shrink: 0;
 }
 
-/* Typing Indicator 氣泡容器 */
+/* Rating row */
+.ratingSection {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-top: 1px solid #f0f0f0;
+  background: #fff;
+}
+
+/* Exit button row */
+.exitSection {
+  flex-shrink: 0;
+  padding: 8px 12px 12px;
+  background: #fff;
+}
+
+/* Typing indicator */
 .typingIndicator {
-  background-color: #f0f0f0; /* 與 AI 氣泡顏色一致 */
-  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  padding: 10px 15px;
   border-radius: 18px;
-  border-bottom-left-radius: 4px; /* 模仿對話氣泡形狀 */
+  margin-left: 10px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  width: fit-content;
+  gap: 5px;
   min-height: 40px;
 }
 
-/* 跳動的圓點 */
 .typingIndicator span {
   width: 8px;
   height: 8px;
@@ -173,39 +196,11 @@
   display: inline-block;
   animation: typingBounce 0.8s infinite ease-in-out both;
 }
+.typingIndicator span:nth-child(1) { animation-delay: 0s; }
+.typingIndicator span:nth-child(2) { animation-delay: 0.2s; }
+.typingIndicator span:nth-child(3) { animation-delay: 0.4s; }
 
-/* 圓點跳動的時間差 */
-.typingIndicator span:nth-child(1) {
-  animation-delay: 0s;
-}
-.typingIndicator span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.typingIndicator span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-/* 動畫定義 */
 @keyframes typingBounce {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.4;
-  }
-  50% {
-    transform: translateY(-6px); /* 往上跳 6px */
-    opacity: 1;
-  }
-}
-
-/* 確保 Loading 氣泡不會有「小尾巴」，這會讓它看起來更像正在處理 */
-.aiWrapper .typingIndicator {
-  background: #ffffff;
-  border: 1px solid #ddd;
-  margin-left: 10px;
-  padding: 10px 15px;
-  border-radius: 18px;
-  display: flex;
-  gap: 5px;
-  align-items: center;
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50%       { transform: translateY(-6px); opacity: 1; }
 }

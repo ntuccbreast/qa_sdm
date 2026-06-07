@@ -63,24 +63,100 @@
 
 /* ── 基礎佈局樣式 ── */
 
-/* 滿版容器，完全鎖定高度防止雙滾動條 */
+/* 填滿 MainLayout 給的 pageContent 空間 */
 .container {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   overflow: hidden;
   background-color: #ffffff;
   position: relative;
 }
 
+/* YT 補充影片 icon 按鈕 */
+.ytIconButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1.5px solid #ffb3b3;
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  color: #d32f2f;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.ytIconButton:hover {
+  background: #fff5f5;
+}
+
+/* YT Modal */
+.ytModalOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* Wrapper sits outside ytModalContent so the close button isn't clipped */
+.ytModalWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.ytModalContent {
+  width: 100%;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ytModalPlayer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+}
+
+.ytModalClose {
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e05a7a;
+  color: #fff;
+  border: 2px solid #fff;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
 /* 頂部固定 Stepper 面板 */
 .stickyHeader {
+  flex-shrink: 0;
   width: 100%;
-  max-width: 480px;
   background-color: #ffffff;
-  padding: 16px 16px 10px 16px;
+  padding: 12px 16px 8px 16px;
   box-sizing: border-box;
   z-index: 100;
   border-bottom: 1px solid #f5f5f5;
@@ -101,13 +177,13 @@
   font-weight: 600;
 }
 
-/* 中間自主滾動區：預留底部 110px 給固定按鈕列防止遮擋 */
+/* 中間自主滾動區 */
 .scrollableContent {
   width: 100%;
-  max-width: 480px;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 16px 16px 110px 16px;
+  padding: 16px;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
   position: relative;
@@ -242,18 +318,15 @@
 /* ── 🌟 底部固定控制列 ── */
 
 .fixedActionFooter {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 0 0 auto;
   width: 100%;
   max-width: 480px;
-  background: linear-gradient(to top, #ffffff 75%, rgba(255, 255, 255, 0));
+  background: #ffffff;
+  border-top: 1px solid #f0f0f0;
   padding: 16px 16px 28px 16px;
   display: flex;
   flex-direction: row;
   gap: 12px;
-  z-index: 110;
   box-sizing: border-box;
 }
 
@@ -303,6 +376,8 @@
   position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
   background: #ffffff;

@@ -5,28 +5,21 @@ import { useUI } from "../context/UIContext";
 import Button from "../components/common/Button";
 import Card from "../components/common/Card";
 import styles from "../SDM.module.css";
-import eveVideo from "../assets/eve_sdm_talk.mp4";
 import { topicDescriptions } from "../constants/sdm";
-import { useSpeech } from "../hooks/useSpeech";
 
 const SDM = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { setHeroData, allAnswers } = useUI();
-  const videoRef = useRef(null);
-  const { speak, cancel, pause, resume } = useSpeech();
 
   const step = searchParams.get("step") || "SELECT";
   const selectedTopicId = searchParams.get("topic");
 
   const [tempSelectedTopic, setTempSelectedTopic] = useState(selectedTopicId || null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [currentSubtitle, setCurrentSubtitle] = useState("");
   const [activeHint, setActiveHint] = useState(null);
   const [showScrollHint, setShowScrollHint] = useState(false);
+  const [hintAtBottom, setHintAtBottom] = useState(false);
   const contentSectionRef = useRef(null);
-  const sentencesRef = useRef([]);
 
   const checkCanScroll = () => {
     const el = contentSectionRef.current;
@@ -37,21 +30,24 @@ const SDM = () => {
     }
   };
 
-  const getSpeechText = () => {
+  useEffect(() => {
+    const timer = setTimeout(checkCanScroll, 300);
+    return () => clearTimeout(timer);
+  }, [step, selectedTopicId]);
+
+  // ✅ 交給 MainLayout 統一播放 TTS
+  useEffect(() => {
     if (step === "SELECT" && !selectedTopicId) {
-      return `${allAnswers.userName || "您"}您好，請選擇您想了解的乳癌治療決策輔助主題。`;
+      setHeroData({
+        description: `${allAnswers.userName || "您"}您好，請選擇您想了解的乳癌治療決策輔助主題。`,
+      });
     } else if (step === "INTRO" && selectedTopicId) {
       const topic = topicDescriptions[selectedTopicId];
-      return topic.audio || topic.content.replace(/<[^>]+>/g, "");
+      setHeroData({
+        description: topic.audio || topic.content.replace(/<[^>]+>/g, ""),
+      });
     }
-    return "";
-  };
-
-  const buildSentences = (text) => {
-    const arr = text.match(/[^。？！，、]+[。？！，、]?/g) || [text];
-    let acc = 0;
-    return arr.map((s) => { const start = acc; acc += s.length; return { text: s.trim(), start, end: acc }; });
-  };
+  }, [step, selectedTopicId, allAnswers.userName, setHeroData]);
 
   const handleContentClick = (e) => {
     const trigger = e.target.closest(".hint-trigger");
@@ -62,80 +58,14 @@ const SDM = () => {
     }
   };
 
-  useEffect(() => {
-    const timer = setTimeout(checkCanScroll, 300);
-    return () => clearTimeout(timer);
-  }, [step, selectedTopicId]);
-
-  useEffect(() => {
-    setHeroData(null);
-    cancel();
-    setIsPlaying(false); setIsPaused(false); setCurrentSubtitle("");
-    sentencesRef.current = buildSentences(getSpeechText());
-    return () => { cancel(); if (videoRef.current) videoRef.current.pause(); };
-  }, [step, selectedTopicId, allAnswers.userName, setHeroData]);
-
-  const handleTogglePlay = (e) => {
-    e?.stopPropagation();
-    if (!window.speechSynthesis) return;
-
-    if (isPlaying && !isPaused) {
-      pause();
-      if (videoRef.current) videoRef.current.pause();
-      setIsPaused(true);
-    } else if (isPlaying && isPaused) {
-      resume();
-      if (videoRef.current) videoRef.current.play().catch(() => {});
-      setIsPaused(false);
-    } else {
-      const text = getSpeechText();
-      sentencesRef.current = buildSentences(text);
-      speak({
-        text,
-        onStart: () => {
-          setIsPlaying(true); setIsPaused(false);
-          if (videoRef.current) { videoRef.current.muted = true; videoRef.current.play().catch(() => {}); }
-        },
-        onBoundary: (e) => {
-          const active = sentencesRef.current.find((s) => e.charIndex >= s.start && e.charIndex < s.end);
-          if (active) setCurrentSubtitle(active.text);
-        },
-        onEnd: () => {
-          setIsPlaying(false); setIsPaused(false); setCurrentSubtitle("");
-          if (videoRef.current) { videoRef.current.pause(); videoRef.current.currentTime = 0; }
-        },
-        onError: () => {
-          setIsPlaying(false); setIsPaused(false); setCurrentSubtitle("");
-          if (videoRef.current) videoRef.current.pause();
-        },
-      });
-    }
-  };
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", overflow: "hidden" }}>
+    <div className={styles.wrapper}>
       <style>{`
         @keyframes hint-glow { 0%,100%{transform:scale(1);box-shadow:0 2px 6px rgba(244,162,180,0.4);opacity:0.85}50%{transform:scale(1.1);box-shadow:0 2px 12px rgba(244,162,180,0.7);opacity:1} }
         .pulsing-hint{animation:hint-glow 2s infinite ease-in-out}
         @keyframes bounce-down{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
         .scroll-down-tip{position:sticky;bottom:12px;left:0;right:0;margin:0 auto;width:max-content;background-color:rgba(244,162,180,0.95);color:white;padding:6px 14px;border-radius:20px;font-size:0.85rem;font-weight:bold;letter-spacing:0.5px;box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:bounce-down 1.6s infinite ease-in-out;pointer-events:none;z-index:10}
       `}</style>
-
-      <div className={styles.videoSection}>
-        <video ref={videoRef} src={eveVideo} playsInline muted loop className={styles.theatreVideo} />
-        {isPlaying && currentSubtitle && (
-          <div className={styles.subtitleOverlay}><p className={styles.subtitleText}>{currentSubtitle}</p></div>
-        )}
-        {isPlaying && (
-          <div className={styles.audioBadge}>
-            <span className={isPaused ? styles.audioDotPaused : styles.audioDot}></span>
-            {isPaused ? "已暫停" : "說明中..."}
-          </div>
-        )}
-        <button className={styles.controlBtnTopRight} onClick={handleTogglePlay}>
-          {isPlaying && !isPaused ? "⏸ 暫停" : "▶️ 播放"}
-        </button>
-      </div>
 
       <div ref={contentSectionRef} onScroll={checkCanScroll} className={styles.contentSection}>
         {step === "SELECT" ? (
@@ -168,14 +98,26 @@ const SDM = () => {
       </div>
 
       {activeHint && (
-        <div style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100vh",backgroundColor:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)",display:"flex",justifyContent:"center",alignItems:"center",zIndex:9999,padding:"20px" }}
-          onClick={() => setActiveHint(null)}>
-          <div style={{ position:"relative",backgroundColor:"#fff",borderRadius:"20px",padding:"20px",maxWidth:"750px",width:"100%",boxShadow:"0 12px 36px rgba(0,0,0,0.25)" }}
+        <div style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",backgroundColor:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)",display:"flex",justifyContent:"center",alignItems:"center",zIndex:9999,padding:"16px",boxSizing:"border-box" }}
+          onClick={() => { setActiveHint(null); setHintAtBottom(false); }}>
+          <div style={{ display:"flex",flexDirection:"column",backgroundColor:"#fff",borderRadius:"20px",maxWidth:"750px",width:"100%",maxHeight:"88dvh",boxShadow:"0 12px 36px rgba(0,0,0,0.25)",overflow:"hidden" }}
             onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setActiveHint(null)}
-              style={{ position:"absolute",top:"-14px",right:"-14px",width:"34px",height:"34px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"2px solid #fff",fontSize:"16px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 4px 10px rgba(0,0,0,0.15)" }}>✕</button>
-            {activeHint.type === "image" && <img src={activeHint.src} alt={activeHint.alt || "說明圖片"} style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block" }} />}
-            {activeHint.type === "text" && <div style={{ padding:"8px" }}><h3 style={{ marginTop:0,color:"#e91e63" }}>{activeHint.title}</h3><p style={{ color:"#333",lineHeight:"1.6",margin:0 }}>{activeHint.content}</p></div>}
+            <div style={{ display:"flex",justifyContent:"flex-end",padding:"10px 12px",flexShrink:0 }}>
+              <button onClick={() => { setActiveHint(null); setHintAtBottom(false); }}
+                style={{ width:"32px",height:"32px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"none",fontSize:"18px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.15)",lineHeight:1 }}>✕</button>
+            </div>
+            <div style={{ position:"relative",flex:1,minHeight:0,display:"flex",flexDirection:"column" }}>
+              <div style={{ overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 16px 20px",flex:1,minHeight:0 }}
+                onScroll={(e) => { const el = e.currentTarget; setHintAtBottom(el.scrollHeight - el.scrollTop <= el.clientHeight + 8); }}>
+                {activeHint.type === "image" && <img src={activeHint.src} alt={activeHint.alt || "說明圖片"} style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block" }} />}
+                {activeHint.type === "text" && <div style={{ padding:"8px" }}><h3 style={{ marginTop:0,color:"#e91e63" }}>{activeHint.title}</h3><p style={{ color:"#333",lineHeight:"1.6",margin:0 }}>{activeHint.content}</p></div>}
+              </div>
+              {!hintAtBottom && (
+                <div style={{ position:"absolute",bottom:0,left:0,right:0,height:"64px",background:"linear-gradient(to bottom,transparent,rgba(255,255,255,0.97))",pointerEvents:"none",display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:"8px" }}>
+                  <span style={{ fontSize:"1.1rem",color:"#ccc",lineHeight:1 }}>▾</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

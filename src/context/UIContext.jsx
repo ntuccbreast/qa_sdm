@@ -20,9 +20,21 @@ export const UIProvider = ({ children }) => {
     result: "",
   });
 
+  const [isSpeechPlaying, setIsSpeechPlaying] = useState(false);
+  // true once the current page's TTS finishes — resets whenever a new speech starts
+  const [hasSpeechEnded, setHasSpeechEnded] = useState(false);
+  // controls the inline chatbot panel inside the Questionnaire page
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+
   return (
     <UIContext.Provider
-      value={{ heroData, setHeroData, allAnswers, setAllAnswers }}
+      value={{
+        heroData, setHeroData,
+        allAnswers, setAllAnswers,
+        isSpeechPlaying, setIsSpeechPlaying,
+        hasSpeechEnded, setHasSpeechEnded,
+        isChatbotOpen, setIsChatbotOpen,
+      }}
     >
       {children}
     </UIContext.Provider>

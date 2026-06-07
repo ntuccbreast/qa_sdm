@@ -1,7 +1,8 @@
 // src/pages/Questionnaire.jsx
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Button from "../components/common/Button";
 import OptionButton from "../components/common/OptionButton";
 import ConflictCard from "../components/common/ConflictCard";
@@ -21,15 +22,13 @@ import {
   getBctSmFinalResult,
 } from "../components/utils/decisionLogic";
 
-const PHASE = {
-  READY: "READY",
-  SPEAKING: "SPEAKING",
-};
-
 const Questionnaire = () => {
   const { topicKey } = useParams();
   const navigate = useNavigate();
-  const { setHeroData, allAnswers, setAllAnswers } = useUI();
+  const location = useLocation();
+  const { setHeroData, allAnswers, setAllAnswers, isChatbotOpen, setIsChatbotOpen, hasSpeechEnded, setHasSpeechEnded } = useUI();
+  // snapshot is present when the user navigates back from the Result page
+  const snapshot = location.state?.questionnaireSnapshot ?? null;
 
   // 🛠️ 核心宣告：自動偵測是否為本地開發環境 (localhost:3000)
   const isDev =
@@ -41,13 +40,14 @@ const Questionnaire = () => {
     [topicKey],
   );
 
-  const [currentId, setCurrentId] = useState(questionSet[0].id);
-  const [history, setHistory] = useState([]);
-  const [answers, setAnswers] = useState({});
+  const [currentId, setCurrentId] = useState(() => snapshot?.currentId ?? questionSet[0].id);
+  const [history, setHistory] = useState(() => snapshot?.history ?? []);
+  const [answers, setAnswers] = useState(() => snapshot?.answers ?? {});
   const [isVideoFinished, setIsVideoFinished] = useState(false);
-  const [viewedPages, setViewedPages] = useState(new Set());
-  const [viewedCases, setViewedCases] = useState(new Set());
-  const [completedRoutes, setCompletedRoutes] = useState(new Set());
+  // Sets are serialised as arrays in router state — convert back on restore
+  const [viewedPages, setViewedPages] = useState(() => new Set(snapshot?.viewedPages ?? []));
+  const [viewedCases, setViewedCases] = useState(() => new Set(snapshot?.viewedCases ?? []));
+  const [completedRoutes, setCompletedRoutes] = useState(() => new Set(snapshot?.completedRoutes ?? []));
   const [isConflictMode, setIsConflictMode] = useState(false);
   const [conflictData, setConflictData] = useState(null);
   const [conflictChoice, setConflictChoice] = useState(null);
@@ -66,9 +66,7 @@ const Questionnaire = () => {
     }
   };
 
-  // 互動狀態控制 (Chatbot 專用)
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
-  const [phase, setPhase] = useState(PHASE.READY);
+  // 互動狀態控制 (Chatbot 專用) — isChatbotOpen/setIsChatbotOpen 由 UIContext 提供
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     {
@@ -89,8 +87,12 @@ const Questionnaire = () => {
   const chatbotRef = useRef(null);
 
   // ✅ iOS 鍵盤彈出時，用 visualViewport 動態調整 chatbot 視窗高度
+  // 只在手機（有 touch 支援）才啟動，桌機讓 CSS height:100% 自己處理
   useEffect(() => {
     if (!isChatbotOpen) return;
+    const isTouchDevice = navigator.maxTouchPoints > 0;
+    if (!isTouchDevice) return;
+
     const viewport = window.visualViewport;
     if (!viewport) return;
 
@@ -193,19 +195,18 @@ const Questionnaire = () => {
     }
   };
 
-  const synthRef = useRef(window.speechSynthesis);
-  const utteranceRef = useRef(null);
-
   const currentQ = questionSet.find((q) => q.id === currentId);
 
   useEffect(() => {
-    setAllAnswers((prev) => ({
-      ...prev,
-      answers: {},
-      selectedTopic: topicKey, // topicKey 在 mount 時已經確定，直接讀就好
-    }));
-    setAnswers({});
-    setHistory([]);
+    if (snapshot) {
+      // Returning from Result — restore allAnswers to match the snapshot
+      setAllAnswers((prev) => ({ ...prev, answers: snapshot.answers, selectedTopic: topicKey }));
+    } else {
+      // Fresh start — reset everything
+      setAllAnswers((prev) => ({ ...prev, answers: {}, selectedTopic: topicKey }));
+      setAnswers({});
+      setHistory([]);
+    }
     setIsChatbotOpen(false);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -217,68 +218,19 @@ const Questionnaire = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // ✅ 把每題的 assistantScript 放進 description，讓 MainLayout 統一播放 TTS
+    const scriptText = isConflictMode
+      ? "請針對您的顧慮做出最後權衡。"
+      : (currentQ?.assistantScript || currentQ?.descriptionText || "請詳閱說明再做出選擇或點擊下一步。");
     setHeroData({
       imageUrl:
         "https://web-production-fbb7b.up.railway.app/static/helperinside.png",
       title: topicDescriptions[topicKey]?.label || "問卷評估",
-      description: isConflictMode
-        ? "請針對您的顧慮做出最後權衡。"
-        : "請詳閱說明再做出選擇或點擊下一步。",
+      description: scriptText,
     });
-  }, [currentId, isConflictMode, topicKey, setHeroData]);
+  }, [currentId, isConflictMode, topicKey, currentQ, setHeroData]);
 
-  // 🔊 背景引導語音 (TTS)
-  useEffect(() => {
-    if (isConflictMode || !currentQ) return;
 
-    if (synthRef.current) {
-      synthRef.current.cancel();
-    }
-
-    const scriptText = currentQ.assistantScript || currentQ.descriptionText;
-
-    if (!scriptText) {
-      setPhase(PHASE.READY);
-      return;
-    }
-
-    setPhase(PHASE.SPEAKING);
-    const cleanText = scriptText.replace(/<[^>]*>/g, "");
-
-    const speak = () => {
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = "zh-TW";
-      utterance.rate = 1.0;
-
-      // ✅ 修正：明確挑選中文語音，修正 iOS 系統語言為英文時 fallback 的問題
-      const voices = window.speechSynthesis.getVoices();
-      const zhVoice =
-        voices.find((v) => v.lang === "zh-TW") ||
-        voices.find((v) => v.lang === "zh-HK") ||
-        voices.find((v) => v.lang.startsWith("zh"));
-      if (zhVoice) utterance.voice = zhVoice;
-
-      utterance.onend = () => setPhase(PHASE.READY);
-      utterance.onerror = () => setPhase(PHASE.READY);
-
-      utteranceRef.current = utterance;
-      synthRef.current.speak(utterance);
-    };
-
-    // ✅ 修正：iOS Safari 的 getVoices() 是非同步的，需等 onvoiceschanged 觸發
-    if (window.speechSynthesis.getVoices().length > 0) {
-      speak();
-    } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        speak();
-        window.speechSynthesis.onvoiceschanged = null;
-      };
-    }
-
-    return () => {
-      if (synthRef.current) synthRef.current.cancel();
-    };
-  }, [currentId, isConflictMode, currentQ]);
 
   useEffect(() => {
     const caseIds = ["SM_CASE_1_RAD", "SM_CASE_2", "SM_CASE_3", "SM_CASE_4"];
@@ -438,23 +390,79 @@ const Questionnaire = () => {
       dataToSave.push(ultimateChoice || "無衝突");
     }
 
-    // 2. 移除 saveToSheet，改為透過導航傳遞資料
     navigate("/result", {
       state: {
         finalData: result,
         topicKey: topicKey,
-        savedDataMap: dataToSave, // 將處理好的陣列帶過去
+        savedDataMap: dataToSave,
         chatHistory: messages,
+        // Snapshot so Result's 上一步 can return to the exact question state
+        questionnaireSnapshot: {
+          currentId,
+          history,
+          answers: finalAnswers,
+          viewedPages: [...viewedPages],
+          viewedCases: [...viewedCases],
+          completedRoutes: [...completedRoutes],
+        },
       },
     });
   };
 
   const isLockedByVideoVisual = currentQ?.videoUrl && !isVideoFinished;
   const isLockedByVideoLogical = isLockedByVideoVisual && !isDev;
+  const isLockedBySpeech = !hasSpeechEnded;
+
+  // Inline shortcodes: {{yt:VIDEO_ID}} and {{ytkey:KEY}} → clickable YT icon
+  // Hint bubbles: <span class="hint-trigger" data-hint-id="KEY"> → image/text modal
+  const [ytModalVideoId, setYtModalVideoId] = useState(null);
+  const [hintModalData, setHintModalData] = useState(null);
+
+  const YT_ICON_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#FF0000" style="vertical-align:middle;cursor:pointer;flex-shrink:0"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
+
+  // Extract 11-char YouTube ID from either a bare ID or any YouTube URL form
+  const extractYtId = (input = "") =>
+    /^[a-zA-Z0-9_-]{11}$/.test(input)
+      ? input
+      : (input.match(/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] ?? "");
+
+  // {{yt:ID}}       — embed raw YouTube ID directly
+  // {{ytkey:KEY}}   — look up ID from question.videos[KEY].videoId (keeps URLs in data layer)
+  const parseQuestion = (html = "", videos = {}) =>
+    html
+      .replace(/\{\{yt:([^}]+)\}\}/g, (_, raw) => {
+        const id = extractYtId(raw);
+        if (!id) return "";
+        return `<span class="yt-inline-trigger" data-video-id="${id}" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;vertical-align:middle;">${YT_ICON_SVG}</span>`;
+      })
+      .replace(/\{\{ytkey:([^}]+)\}\}/g, (_, key) => {
+        const vid = videos?.[key];
+        const id = extractYtId(vid?.videoId ?? "");
+        if (!id) return "";
+        return `<span class="yt-inline-trigger" data-video-id="${id}" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;vertical-align:middle;">${YT_ICON_SVG}</span>`;
+      });
+
+  const handleQuestionClick = (e) => {
+    const ytTrigger = e.target.closest(".yt-inline-trigger");
+    if (ytTrigger) {
+      const id = ytTrigger.getAttribute("data-video-id");
+      if (id) setYtModalVideoId(id);
+      return;
+    }
+    const hintTrigger = e.target.closest(".hint-trigger");
+    if (hintTrigger) {
+      const id = hintTrigger.getAttribute("data-hint-id");
+      const hint = currentQ?.hints?.[id];
+      if (hint) setHintModalData(hint);
+    }
+  };
 
   const handleNext = () => {
+    if (isLockedBySpeech) {
+      return alert("請先聆聽完說明，再繼續下一步喔！");
+    }
     if (isLockedByVideoVisual) {
-      return alert("請完整觀看上方影片，才能進入下一步喔！");
+      return alert("請完整觀看補充影片，才能進入下一步喔！");
     }
 
     const currentChoice = answers[currentId];
@@ -507,13 +515,10 @@ const Questionnaire = () => {
       return { label: "請選擇想要體驗的流程", color: "#722ed1" };
     if (currentId === "DCIS_Q1")
       return { label: "請選擇手術方式", color: "#722ed1" };
-    if (currentId.includes("DCIS_") && currentId.includes("_BCT"))
+    if (currentId.startsWith("DCIS_BCT_"))
       return { label: "目前選擇：部分乳房切除", color: "#ff7875" };
-    if (currentId.includes("DCIS_") && currentId.includes("_SLN"))
-      return {
-        label: "目前選擇：部分切除合併前哨淋巴結切片",
-        color: "#13c2c2",
-      };
+    if (currentId.startsWith("DCIS_SLNB_"))
+      return { label: "目前選擇：部分切除合併前哨淋巴結切片", color: "#13c2c2" };
     return null;
   };
 
@@ -570,11 +575,12 @@ const Questionnaire = () => {
         }
       `}</style>
 
-      {/* 頂部進度條與狀態 */}
+      {/* ── 頂部固定：進度條與狀態 ── */}
       <div className={styles.stickyHeader}>
         <Stepper
           topicKey={topicKey}
           currentId={currentId}
+          topic={currentQ?.topic ?? ""}
           isConflictMode={isConflictMode}
         />
         {routeInfo && (
@@ -589,7 +595,7 @@ const Questionnaire = () => {
         )}
       </div>
 
-      {/* 主內容滾動區 (掛載 Ref 與滾動接聽) */}
+      {/* 主內容滾動區 */}
       <div
         ref={scrollableContentRef}
         onScroll={checkCanScroll}
@@ -618,14 +624,27 @@ const Questionnaire = () => {
                   fontSize: "13px",
                   color: "#d46b08",
                   display: "flex",
-                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: "8px",
                   alignItems: "center",
                   boxSizing: "border-box",
                 }}
               >
-                <span>
-                  🛠️ <b>開發模式</b>
-                </span>
+                <span style={{ marginRight: "auto" }}>🛠️ <b>開發模式</b></span>
+                <button
+                  onClick={() => setHasSpeechEnded(true)}
+                  style={{
+                    background: hasSpeechEnded ? "#52c41a" : "#1890ff",
+                    color: "#fff",
+                    border: "none",
+                    padding: "4px 10px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {hasSpeechEnded ? "✓ 語音已解鎖" : "跳過語音鎖定"}
+                </button>
                 <button
                   onClick={() => {
                     const nextState = !isVideoFinished;
@@ -655,97 +674,19 @@ const Questionnaire = () => {
               </div>
             )}
 
-            {/* 1. 常駐 YouTube 影片舞台 */}
-            {currentQ?.videoUrl && (
-              <div className={styles.topVideoStage}>
-                <div
-                  id={`yt-player-${currentId}`}
-                  className={styles.stageIframe}
-                />
-              </div>
-            )}
-            {/* 2. 重點提示說明盒子 + 機器人 Icon */}
-            <div
-              className={`${styles.infoDocumentBox} ${isLockedByVideoVisual ? styles.lockedBox : ""}`}
-            >
-              <div className={styles.infoBoxHeader}>
-                <h4 className={styles.infoBoxTitle}>
-                  💡 重點提示 (有問題請隨時呼叫我 👉)
-                </h4>
 
-                {/* 🤖 Chatbot 觸發按鈕 */}
-                <div
-                  onClick={() => {
-                    if (isLockedByVideoVisual) {
-                      alert("請完整觀看完上方影片再詢問問題喔！");
-                    } else {
-                      setIsChatbotOpen(true);
-                    }
-                  }}
-                  className={styles.imageChatbotTrigger}
-                  title={
-                    isLockedByVideoVisual
-                      ? "看完影片才能問問題"
-                      : "點擊詢問智慧小幫手"
-                  }
-                  style={
-                    isLockedByVideoVisual
-                      ? { animation: "none", cursor: "not-allowed" }
-                      : {}
-                  }
-                >
-                  <img src={helperIcon} alt="問小幫手" />
-                </div>
-              </div>
 
-              <p className={styles.infoBoxDesc}>
-                {currentQ.descriptionText ||
-                  "請仔細觀看上方醫療說明影片，並依據您的實際感受與生活偏好做出選擇。"}
-              </p>
-
-              {/* 影片狀態 Tag */}
-              {videoId &&
-                (isVideoFinished ? (
-                  <div
-                    className={`${styles.videoStatusTag} ${styles.videoStatusFinished}`}
-                  >
-                    ✓ 狀態：本頁影片已完整觀看完畢
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setIsVideoFinished(true);
-                      setViewedPages((prev) => new Set(prev).add(currentId));
-                    }}
-                    style={{
-                      marginTop: "10px",
-                      padding: "8px 18px",
-                      backgroundColor: "#e89abe",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "20px",
-                      cursor: "pointer",
-                      fontSize: "0.9rem",
-                      fontWeight: "600",
-                    }}
-                  >
-                    ✅ 我已看完影片，繼續填寫
-                  </button>
-                ))}
-            </div>
-
-            {/* 3. 題目 */}
+            {/* 1. 題目（含 {{yt:ID}} / {{ytkey:KEY}} shortcode 解析，以及 hint-trigger 點擊） */}
             <h3
               className={styles.questionTitle}
+              onClick={handleQuestionClick}
               dangerouslySetInnerHTML={{
-                __html: currentQ.question || currentQ.topic,
+                __html: parseQuestion(currentQ.question || currentQ.topic, currentQ.videos),
               }}
             />
 
-            {/* 4. 選項群組 */}
-            <div
-              className={`${styles.optionsGroup} ${isLockedByVideoVisual ? styles.lockedBox : ""}`}
-            >
+            {/* 3. 選項群組 */}
+            <div className={`${styles.optionsGroup} ${isLockedByVideoVisual ? styles.lockedBox : ""}`}>
               {currentQ.options?.map((opt, index) => {
                 const isSMMatrix = currentId === "SM_B3_TREATMENT_MATRIX";
                 const isFinished =
@@ -757,16 +698,11 @@ const Questionnaire = () => {
                   (opt.nextId === "SM_B1_OP" && completedRoutes.has("SM"));
 
                 const isDisabledVideoLock = isLockedByVideoLogical;
-
                 const isDisabledBusinessLock =
                   !isDev &&
-                  ((isSMMatrix &&
-                    opt.nextId === "SM_B6_FINISH" &&
-                    !isAllCasesViewed) ||
+                  ((isSMMatrix && opt.nextId === "SM_B6_FINISH" && !isAllCasesViewed) ||
                     (opt.nextId === "Q_APPEARANCE" && !isBothRoutesViewed));
-
-                const isDisabled =
-                  isDisabledVideoLock || isDisabledBusinessLock;
+                const isDisabled = isDisabledVideoLock || isDisabledBusinessLock;
 
                 return (
                   <OptionButton
@@ -778,11 +714,7 @@ const Questionnaire = () => {
                       if (isDisabled) return;
                       setAnswers({ ...answers, [currentId]: opt.label });
                     }}
-                    style={
-                      isFinished
-                        ? { borderColor: "#52c41a", color: "#52c41a" }
-                        : {}
-                    }
+                    style={isFinished ? { borderColor: "#52c41a", color: "#52c41a" } : {}}
                   />
                 );
               })}
@@ -790,30 +722,25 @@ const Questionnaire = () => {
           </>
         )}
 
-        {/* 🎯 貼心黏性下滑提示字條：滾動到底自動隱藏，絕不卡版面 */}
+        {/* 下滑提示 */}
         {showScrollHint && !isConflictMode && (
           <div className="scroll-down-tip">下滑還有內容喔 👇</div>
         )}
       </div>
 
-      {/* 5. 底部絕對固定操作列 */}
+      {/* 底部固定操作列 */}
       {!isConflictMode && (
         <div className={styles.fixedActionFooter}>
           <Button variant="outline" onClick={handleBack} style={{ flex: 1 }}>
             {history.length === 0 ? "返回介紹" : "上一步"}
           </Button>
-
           <Button
             onClick={handleNext}
             style={{
               flex: 1,
               pointerEvents: "auto",
-              ...(isLockedByVideoVisual
-                ? {
-                    opacity: 0.5,
-                    filter: "grayscale(100%)",
-                    cursor: "not-allowed",
-                  }
+              ...((isLockedByVideoVisual || isLockedBySpeech)
+                ? { opacity: 0.5, filter: "grayscale(100%)", cursor: "not-allowed" }
                 : {}),
             }}
           >
@@ -822,10 +749,66 @@ const Questionnaire = () => {
         </div>
       )}
 
-      {/* 🤖 滿版覆蓋式 Chatbot 容器 */}
-      {isChatbotOpen && (
+      {/* 💡 Hint Modal — 由 hint-trigger 觸發，顯示圖片或文字說明 */}
+      {hintModalData && (
+        <div
+          style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100vh",backgroundColor:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)",display:"flex",justifyContent:"center",alignItems:"center",zIndex:9999,padding:"20px",boxSizing:"border-box" }}
+          onClick={() => setHintModalData(null)}
+        >
+          <div
+            style={{ position:"relative",backgroundColor:"#fff",borderRadius:"20px",padding:"48px 20px 20px",maxWidth:"750px",width:"100%",boxShadow:"0 12px 36px rgba(0,0,0,0.25)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button inside the box — always visible */}
+            <button
+              onClick={() => setHintModalData(null)}
+              style={{ position:"absolute",top:"12px",right:"14px",width:"30px",height:"30px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"none",fontSize:"16px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.15)" }}
+            >✕</button>
+            {hintModalData.type === "image" && (
+              <img src={hintModalData.src} alt={hintModalData.alt || "說明圖片"} style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block" }} />
+            )}
+            {hintModalData.type === "text" && (
+              <div style={{ padding:"8px" }}>
+                <h3 style={{ marginTop:0,color:"#e91e63" }}>{hintModalData.title}</h3>
+                <p style={{ color:"#333",lineHeight:"1.6",margin:0 }}>{hintModalData.content}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* YT 影片 Modal — fixed 蓋住全頁，由 {{yt:ID}} shortcode 觸發 */}
+      {ytModalVideoId && (
+        <div
+          className={styles.ytModalOverlay}
+          onClick={() => setYtModalVideoId(null)}
+        >
+          <div
+            className={styles.ytModalWrapper}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className={styles.ytModalClose}
+              onClick={() => setYtModalVideoId(null)}
+            >✕</button>
+            <div className={styles.ytModalContent}>
+              {/* autoplay=0 avoids triggering YouTube's autoplay-block error */}
+              <iframe
+                className={styles.ytModalPlayer}
+                src={`https://www.youtube-nocookie.com/embed/${ytModalVideoId}?rel=0&autoplay=0`}
+                title="補充說明影片"
+                frameBorder="0"
+                allow="fullscreen"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🤖 Chatbot overlay — rendered via portal into phoneWrapper so it covers the video section too */}
+      {isChatbotOpen && document.getElementById("questionnaire-chatbot-root") && createPortal(
         <div className={styles.chatbotOverlayWindow} ref={chatbotRef}>
-          {/* 頂部導覽列 */}
           <div className={styles.chatbotHeader}>
             <div className={styles.headerTitleZone}>
               <img src={helperIcon} alt="AI" className={styles.avatar} />
@@ -843,7 +826,6 @@ const Questionnaire = () => {
             ⚠免責聲明：醫療資訊僅供衛教參考，我也無法替代您的醫師為您安排相關療程或診斷。有緊急狀況請立即就醫。
           </div>
 
-          {/* 對話區 */}
           <div className={styles.chatBox} ref={scrollRef}>
             {messages.map((msg, index) => (
               <div
@@ -864,15 +846,12 @@ const Questionnaire = () => {
               <div className={`${styles.messageWrapper} ${styles.aiWrapper}`}>
                 <img src={helperIcon} alt="AI" className={styles.avatar} />
                 <div className={styles.typingIndicator}>
-                  <span></span>
-                  <span></span>
-                  <span></span>
+                  <span></span><span></span><span></span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* 底部輸入框 */}
           <div className={styles.inputArea}>
             <textarea
               ref={inputRef}
@@ -913,15 +892,12 @@ const Questionnaire = () => {
           </div>
 
           <div className={styles.chatbotExitArea}>
-            <Button
-              variant="outline"
-              fullWidth
-              onClick={() => setIsChatbotOpen(false)}
-            >
+            <Button variant="outline" fullWidth onClick={() => setIsChatbotOpen(false)}>
               結束詢問，返回繼續評估
             </Button>
           </div>
-        </div>
+        </div>,
+        document.getElementById("questionnaire-chatbot-root")
       )}
     </div>
   );

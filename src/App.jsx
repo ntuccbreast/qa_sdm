@@ -26,10 +26,11 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/Selection" element={<Selection />} />
         <Route path="/SDM" element={<SDM />} />
-        <Route path="/Chatbot" element={<Chatbot />} />
         <Route path="/questionnaire/:topicKey" element={<Questionnaire />} />
         <Route path="/Result" element={<Result />} />
       </Route>
+      {/* Chatbot has its own standalone layout — no video/TTS section needed */}
+      <Route path="/Chatbot" element={<Chatbot />} />
     </Routes>
   );
 }
