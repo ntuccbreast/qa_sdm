@@ -19,6 +19,7 @@ const SDM = () => {
   const [activeHint, setActiveHint] = useState(null);
   const [showScrollHint, setShowScrollHint] = useState(false);
   const [hintAtBottom, setHintAtBottom] = useState(false);
+  const [zoomedSrc, setZoomedSrc] = useState(null);
   const contentSectionRef = useRef(null);
   const hintBackdropRef = useRef(null);
   const hintScrollRef = useRef(null);
@@ -149,12 +150,17 @@ const SDM = () => {
               </div>
               <div style={{ padding:"0 16px 20px" }}>
                 {activeHint.type === "image" && (
-                  <img
-                    src={activeHint.src}
-                    alt={activeHint.alt || "說明圖片"}
-                    draggable={false}
-                    style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block",WebkitUserDrag:"none",userSelect:"none" }}
-                  />
+                  <div style={{ position:"relative",cursor:"zoom-in" }} onClick={() => setZoomedSrc(activeHint.src)}>
+                    <img
+                      src={activeHint.src}
+                      alt={activeHint.alt || "說明圖片"}
+                      draggable={false}
+                      style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block",WebkitUserDrag:"none",userSelect:"none" }}
+                    />
+                    <div style={{ position:"absolute",bottom:"8px",right:"8px",background:"rgba(0,0,0,0.55)",color:"#fff",borderRadius:"8px",padding:"3px 8px",fontSize:"0.72rem",fontWeight:"bold",pointerEvents:"none",letterSpacing:"0.3px" }}>
+                      點擊放大 🔍
+                    </div>
+                  </div>
                 )}
                 {activeHint.type === "text" && (
                   <>
@@ -171,6 +177,25 @@ const SDM = () => {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {zoomedSrc && (
+        <div
+          style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",background:"rgba(0,0,0,0.93)",zIndex:10001,overflow:"auto",boxSizing:"border-box",padding:"52px 0 24px",touchAction:"pan-x pan-y pinch-zoom" }}
+          onClick={() => setZoomedSrc(null)}
+        >
+          <button
+            style={{ position:"fixed",top:"12px",right:"16px",width:"36px",height:"36px",borderRadius:"50%",background:"#f4a2b4",color:"#fff",border:"none",fontSize:"20px",fontWeight:"bold",cursor:"pointer",zIndex:10002,display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.3)" }}
+            onClick={(e) => { e.stopPropagation(); setZoomedSrc(null); }}
+          >✕</button>
+          <img
+            src={zoomedSrc}
+            draggable={false}
+            onClick={(e) => e.stopPropagation()}
+            style={{ display:"block",margin:"0 auto",width:"100%",maxWidth:"960px",height:"auto",padding:"0 12px",boxSizing:"border-box",WebkitUserDrag:"none",userSelect:"none",borderRadius:"8px",touchAction:"pan-x pan-y pinch-zoom" }}
+          />
+          <p style={{ textAlign:"center",color:"rgba(255,255,255,0.4)",fontSize:"0.76rem",margin:"14px 0 0",letterSpacing:"0.3px" }}>點擊空白處關閉</p>
         </div>
       )}
     </div>

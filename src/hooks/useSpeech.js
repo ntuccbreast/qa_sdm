@@ -41,6 +41,10 @@ export function useSpeech() {
   // Tracks the last charPos the subtitle showed — so if the iOS interval is
   // spuriously cleared and restarted, it resumes from here instead of phrase 0.
   const iosLastCharRef = useRef(-1);
+  // Shared elapsed time and tick timestamp — stored as refs so onboundary can
+  // recalibrate them directly, preventing drift from accumulating over long speech.
+  const iosElapsedRef = useRef(0);
+  const iosLastTickRef = useRef(0);
   // Incremented each time speak() is called; lets onend timeouts detect stale closures
   const utteranceGenRef = useRef(0);
 
@@ -65,9 +69,10 @@ export function useSpeech() {
   };
 
   // Subtitle sync for iOS where onboundary is unreliable for zh-TW.
-  // Polls every 100ms, tracking real (non-paused) elapsed time.
-  // When onboundary does fire with a valid charIndex, we use it to
-  // correct the estimated position so drift doesn't accumulate.
+  // Polls every 50ms, tracking real (non-paused) elapsed time via refs so that
+  // onboundary can recalibrate iosElapsedRef whenever a valid charIndex arrives.
+  // This keeps drift bounded to the gap between consecutive boundary events instead
+  // of letting it accumulate over the whole speech.
   //
   // If the interval was previously running and got spuriously cleared mid-speech,
   // iosLastCharRef holds the last shown position so we resume from there
@@ -79,21 +84,21 @@ export function useSpeech() {
     // Resume from last known position if this is a mid-speech restart (spurious iOS event).
     // Fresh speech: iosLastCharRef = -1 → start with startup latency offset.
     const resumeChar = iosLastCharRef.current;
-    let elapsed = resumeChar >= 0
+    iosElapsedRef.current = resumeChar >= 0
       ? resumeChar / (IOS_CHARS_PER_SEC * (rate || 1.0))
       : -0.3;
+    iosLastTickRef.current = Date.now();
 
-    let lastTick = Date.now();
     let lastPhraseText = null;
 
     iosIntervalRef.current = setInterval(() => {
       const now = Date.now();
       if (!window.speechSynthesis.paused) {
-        elapsed += (now - lastTick) / 1000;
+        iosElapsedRef.current += (now - iosLastTickRef.current) / 1000;
       }
-      lastTick = now;
+      iosLastTickRef.current = now;
 
-      const estimated = Math.floor(elapsed * IOS_CHARS_PER_SEC * (rate || 1.0));
+      const estimated = Math.floor(iosElapsedRef.current * IOS_CHARS_PER_SEC * (rate || 1.0));
       const charPos = iosCorrectedCharRef.current > estimated
         ? iosCorrectedCharRef.current
         : estimated;
@@ -114,7 +119,7 @@ export function useSpeech() {
         lastPhraseText = phrase.text;
         onSubtitleRef.current?.(phrase.text);
       }
-    }, 100);
+    }, 50);
   };
 
   const speak = useCallback(({ text, lang = "zh-TW", rate = 1.0, onStart, onSubtitle, onEnd, onError }) => {
@@ -158,10 +163,17 @@ export function useSpeech() {
         if (e.name !== "word" && e.name !== "sentence") return;
         const idx = e.charIndex;
         if (isIOS()) {
-          // On iOS: only use charIndex to correct the polling loop's forward estimate.
-          // Never call onSubtitle directly here — spurious low-index events would
-          // snap the subtitle back to the first phrase mid-speech.
-          if (idx > iosCorrectedCharRef.current) iosCorrectedCharRef.current = idx;
+          // On iOS: use charIndex to both advance the floor AND recalibrate elapsed time.
+          // Only accept idx if it's strictly advancing (spurious low-index events ignored).
+          // Recalibrating iosElapsedRef here means future interval ticks extrapolate from
+          // the correct base, bounding drift to the gap between consecutive boundary events.
+          if (idx > iosCorrectedCharRef.current) {
+            iosCorrectedCharRef.current = idx;
+            if (iosIntervalRef.current) {
+              iosElapsedRef.current = idx / (IOS_CHARS_PER_SEC * (rate || 1.0));
+              iosLastTickRef.current = Date.now();
+            }
+          }
           return;
         }
         const phrase =
