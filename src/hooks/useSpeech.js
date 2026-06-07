@@ -38,6 +38,9 @@ export function useSpeech() {
   const phrasesRef = useRef([]);
   const iosIntervalRef = useRef(null);
   const iosCorrectedCharRef = useRef(-1);
+  // Tracks the last charPos the subtitle showed — so if the iOS interval is
+  // spuriously cleared and restarted, it resumes from here instead of phrase 0.
+  const iosLastCharRef = useRef(-1);
   // Incremented each time speak() is called; lets onend timeouts detect stale closures
   const utteranceGenRef = useRef(0);
 
@@ -65,12 +68,21 @@ export function useSpeech() {
   // Polls every 100ms, tracking real (non-paused) elapsed time.
   // When onboundary does fire with a valid charIndex, we use it to
   // correct the estimated position so drift doesn't accumulate.
-  // elapsed starts negative to absorb the iOS TTS engine startup delay
-  // (~300ms between onstart firing and first audio phoneme on device).
+  //
+  // If the interval was previously running and got spuriously cleared mid-speech,
+  // iosLastCharRef holds the last shown position so we resume from there
+  // instead of snapping back to phrase 0 ("您好").
   const scheduleIosSubtitles = (rate) => {
     clearIosTimers();
     iosCorrectedCharRef.current = -1;
-    let elapsed = -0.3;
+
+    // Resume from last known position if this is a mid-speech restart (spurious iOS event).
+    // Fresh speech: iosLastCharRef = -1 → start with startup latency offset.
+    const resumeChar = iosLastCharRef.current;
+    let elapsed = resumeChar >= 0
+      ? resumeChar / (IOS_CHARS_PER_SEC * (rate || 1.0))
+      : -0.3;
+
     let lastTick = Date.now();
     let lastPhraseText = null;
 
@@ -88,6 +100,9 @@ export function useSpeech() {
 
       // Still in startup latency window — don't flash first phrase before audio begins
       if (charPos < 0) return;
+
+      // Track last shown position so a spurious restart can resume from here
+      iosLastCharRef.current = charPos;
 
       const phrase =
         phrasesRef.current.find((p) => charPos >= p.start && charPos < p.end) ??
@@ -108,6 +123,7 @@ export function useSpeech() {
     window.speechSynthesis.cancel();
     clearKeepAlive();
     clearIosTimers(); // ensure clean state so new onstart can always restart the interval
+    iosLastCharRef.current = -1; // reset resume position for the new speech
     onSubtitleRef.current = onSubtitle || null;
     const cleanText = text.replace(/<[^>]*>/g, "");
     phrasesRef.current = buildPhrases(cleanText);

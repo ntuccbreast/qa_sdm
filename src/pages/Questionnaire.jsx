@@ -55,6 +55,8 @@ const Questionnaire = () => {
   // 🎯 新增：控制問卷頁面「下滑看更多」提示的狀態與 Ref
   const [showScrollHint, setShowScrollHint] = useState(false);
   const scrollableContentRef = useRef(null);
+  const hintBackdropRef = useRef(null);
+  const hintScrollRef = useRef(null);
 
   // 🎯 新增：智慧偵測問卷內容是否過長且尚未滑到底
   const checkCanScroll = () => {
@@ -419,6 +421,28 @@ const Questionnaire = () => {
   const [hintModalData, setHintModalData] = useState(null);
   const [hintAtBottom, setHintAtBottom] = useState(false);
 
+  // iOS-safe modal scroll lock — must be AFTER hintModalData useState.
+  // Uses a non-passive native touchmove listener on the backdrop so e.preventDefault()
+  // actually works on iOS. Checks e.target to allow scroll inside the modal container.
+  // Does NOT set touchAction:none on body — that would block the modal scroll too.
+  useEffect(() => {
+    if (!hintModalData) return;
+    document.body.style.overflow = "hidden";
+
+    const backdrop = hintBackdropRef.current;
+    const scrollEl = hintScrollRef.current;
+    const preventOuterScroll = (e) => {
+      if (scrollEl && scrollEl.contains(e.target)) return;
+      e.preventDefault();
+    };
+    backdrop?.addEventListener("touchmove", preventOuterScroll, { passive: false });
+
+    return () => {
+      document.body.style.overflow = "";
+      backdrop?.removeEventListener("touchmove", preventOuterScroll);
+    };
+  }, [hintModalData]);
+
   const YT_ICON_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#FF0000" style="vertical-align:middle;cursor:pointer;flex-shrink:0"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
 
   // Extract 11-char YouTube ID from either a bare ID or any YouTube URL form
@@ -573,6 +597,21 @@ const Questionnaire = () => {
           animation: bounce-down 1.6s infinite ease-in-out;
           pointer-events: none;
           z-index: 10;
+        }
+        .modal-scroll-hint {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background-color: rgba(244, 162, 180, 0.95);
+          color: white;
+          padding: 5px 14px;
+          border-radius: 20px;
+          font-size: 0.82rem;
+          font-weight: bold;
+          letter-spacing: 0.3px;
+          box-shadow: 0 2px 10px rgba(244, 162, 180, 0.5);
+          animation: bounce-down 1.6s infinite ease-in-out;
+          pointer-events: none;
         }
       `}</style>
 
@@ -753,46 +792,47 @@ const Questionnaire = () => {
       {/* 💡 Hint Modal — 由 hint-trigger 觸發，顯示圖片或文字說明 */}
       {hintModalData && (
         <div
+          ref={hintBackdropRef}
           style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",backgroundColor:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)",display:"flex",justifyContent:"center",alignItems:"center",zIndex:9999,padding:"16px",boxSizing:"border-box" }}
           onClick={() => { setHintModalData(null); setHintAtBottom(false); }}
         >
-          <div
-            style={{ display:"flex",flexDirection:"column",backgroundColor:"#fff",borderRadius:"20px",maxWidth:"750px",width:"100%",maxHeight:"88dvh",boxShadow:"0 12px 36px rgba(0,0,0,0.25)",overflow:"hidden" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Fixed header — only close button */}
-            <div style={{ display:"flex",justifyContent:"flex-end",padding:"10px 12px",flexShrink:0 }}>
-              <button
-                onClick={() => { setHintModalData(null); setHintAtBottom(false); }}
-                style={{ width:"32px",height:"32px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"none",fontSize:"18px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.15)",lineHeight:1 }}
-              >✕</button>
-            </div>
-            {/* Scrollable body with bottom-fade scroll indicator */}
-            <div style={{ position:"relative",flex:1,minHeight:0 }}>
-              <div
-                style={{ overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 16px 20px",height:"100%" }}
-                onScroll={(e) => {
-                  const el = e.currentTarget;
-                  setHintAtBottom(el.scrollHeight - el.scrollTop <= el.clientHeight + 8);
-                }}
-              >
+          <div style={{ position:"relative",maxWidth:"750px",width:"100%" }} onClick={(e) => e.stopPropagation()}>
+            <div
+              ref={hintScrollRef}
+              style={{ backgroundColor:"#fff",borderRadius:"20px",maxHeight:"88dvh",overflowY:"auto",WebkitOverflowScrolling:"touch",touchAction:"pan-y",boxShadow:"0 12px 36px rgba(0,0,0,0.25)" }}
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                setHintAtBottom(el.scrollHeight - el.scrollTop <= el.clientHeight + 8);
+              }}
+            >
+              <div style={{ position:"sticky",top:0,display:"flex",justifyContent:"flex-end",padding:"10px 12px",backgroundColor:"#fff",borderRadius:"20px 20px 0 0",zIndex:1 }}>
+                <button
+                  onClick={() => { setHintModalData(null); setHintAtBottom(false); }}
+                  style={{ width:"32px",height:"32px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"none",fontSize:"18px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.15)",lineHeight:1 }}
+                >✕</button>
+              </div>
+              <div style={{ padding:"0 16px 20px" }}>
                 {hintModalData.type === "image" && (
-                  <img src={hintModalData.src} alt={hintModalData.alt || "說明圖片"} style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block" }} />
+                  <img
+                    src={hintModalData.src}
+                    alt={hintModalData.alt || "說明圖片"}
+                    draggable={false}
+                    style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block",WebkitUserDrag:"none",userSelect:"none" }}
+                  />
                 )}
                 {hintModalData.type === "text" && (
-                  <div style={{ padding:"8px" }}>
+                  <>
                     <h3 style={{ marginTop:0,color:"#e91e63" }}>{hintModalData.title}</h3>
                     <p style={{ color:"#333",lineHeight:"1.6",margin:0 }}>{hintModalData.content}</p>
-                  </div>
+                  </>
                 )}
               </div>
-              {/* Gradient fade — visible until scrolled to bottom */}
-              {!hintAtBottom && (
-                <div style={{ position:"absolute",bottom:0,left:0,right:0,height:"64px",background:"linear-gradient(to bottom,transparent,rgba(255,255,255,0.97))",pointerEvents:"none",display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:"8px" }}>
-                  <span style={{ fontSize:"1.1rem",color:"#ccc",lineHeight:1 }}>▾</span>
-                </div>
-              )}
             </div>
+            {!hintAtBottom && (
+              <div style={{ position:"absolute",bottom:0,left:0,right:0,height:"80px",background:"linear-gradient(to bottom,transparent,rgba(255,255,255,0.97))",pointerEvents:"none",borderRadius:"0 0 20px 20px",display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:"12px" }}>
+                <div className="modal-scroll-hint">下滑查看更多 ▾</div>
+              </div>
+            )}
           </div>
         </div>
       )}

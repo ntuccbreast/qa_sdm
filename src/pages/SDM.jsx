@@ -20,18 +20,31 @@ const SDM = () => {
   const [showScrollHint, setShowScrollHint] = useState(false);
   const [hintAtBottom, setHintAtBottom] = useState(false);
   const contentSectionRef = useRef(null);
+  const hintBackdropRef = useRef(null);
+  const hintScrollRef = useRef(null);
 
+  // iOS-safe modal scroll lock:
+  // - body overflow:hidden prevents background scroll on most browsers
+  // - A non-passive native touchmove listener on the backdrop calls preventDefault()
+  //   UNLESS the touch target is inside the scroll container, so the modal can scroll.
+  // (React's onTouchMove is passive → e.preventDefault() silently fails on iOS.)
+  // (body touchAction:none blocks the modal's inner scroll too — so we don't use it.)
   useEffect(() => {
-    if (activeHint) {
-      document.body.style.overflow = "hidden";
-      document.body.style.touchAction = "none";
-    } else {
-      document.body.style.overflow = "";
-      document.body.style.touchAction = "";
-    }
+    if (!activeHint) return;
+    document.body.style.overflow = "hidden";
+
+    const backdrop = hintBackdropRef.current;
+    const scrollEl = hintScrollRef.current;
+
+    const preventOuterScroll = (e) => {
+      if (scrollEl && scrollEl.contains(e.target)) return; // allow scroll inside modal
+      e.preventDefault();
+    };
+    backdrop?.addEventListener("touchmove", preventOuterScroll, { passive: false });
+
     return () => {
       document.body.style.overflow = "";
-      document.body.style.touchAction = "";
+      backdrop?.removeEventListener("touchmove", preventOuterScroll);
     };
   }, [activeHint]);
 
@@ -79,6 +92,7 @@ const SDM = () => {
         .pulsing-hint{animation:hint-glow 2s infinite ease-in-out}
         @keyframes bounce-down{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
         .scroll-down-tip{position:sticky;bottom:12px;left:0;right:0;margin:0 auto;width:max-content;background-color:rgba(244,162,180,0.95);color:white;padding:6px 14px;border-radius:20px;font-size:0.85rem;font-weight:bold;letter-spacing:0.5px;box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:bounce-down 1.6s infinite ease-in-out;pointer-events:none;z-index:10}
+        .modal-scroll-hint{display:inline-flex;align-items:center;gap:4px;background-color:rgba(244,162,180,0.95);color:white;padding:5px 14px;border-radius:20px;font-size:0.82rem;font-weight:bold;letter-spacing:0.3px;box-shadow:0 2px 10px rgba(244,162,180,0.5);animation:bounce-down 1.6s infinite ease-in-out;pointer-events:none}
       `}</style>
 
       <div ref={contentSectionRef} onScroll={checkCanScroll} className={styles.contentSection}>
@@ -112,25 +126,48 @@ const SDM = () => {
       </div>
 
       {activeHint && (
-        <div style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",backgroundColor:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)",zIndex:9999,padding:"16px",boxSizing:"border-box",display:"flex",justifyContent:"center",alignItems:"center" }}
+        <div
+          ref={hintBackdropRef}
+          style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",backgroundColor:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)",zIndex:9999,padding:"16px",boxSizing:"border-box",display:"flex",justifyContent:"center",alignItems:"center" }}
           onClick={() => { setActiveHint(null); setHintAtBottom(false); }}
-          onTouchMove={(e) => e.preventDefault()}>
-          {/* No overflow:hidden on modal — it blocks touch-scroll on iOS inside position:fixed */}
-          <div style={{ position:"relative",backgroundColor:"#fff",borderRadius:"20px",maxWidth:"750px",width:"100%",maxHeight:"88dvh",boxShadow:"0 12px 36px rgba(0,0,0,0.25)" }}
-            onClick={(e) => e.stopPropagation()}>
-            {/* Close button: absolutely positioned so it doesn't affect scroll area height */}
-            <button onClick={() => { setActiveHint(null); setHintAtBottom(false); }}
-              style={{ position:"absolute",top:"10px",right:"12px",zIndex:2,width:"32px",height:"32px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"none",fontSize:"18px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.15)",lineHeight:1 }}>✕</button>
-            {/* Scroll area: onTouchMove stops propagation so backdrop's preventDefault doesn't block inner scroll */}
-            <div style={{ overflowY:"scroll",WebkitOverflowScrolling:"touch",maxHeight:"88dvh",borderRadius:"20px",padding:"16px 16px 20px",paddingTop:"44px",boxSizing:"border-box",touchAction:"pan-y" }}
-              onTouchMove={(e) => e.stopPropagation()}
-              onScroll={(e) => { const el = e.currentTarget; setHintAtBottom(el.scrollHeight - el.scrollTop <= el.clientHeight + 8); }}>
-              {activeHint.type === "image" && <img src={activeHint.src} alt={activeHint.alt || "說明圖片"} style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block" }} />}
-              {activeHint.type === "text" && <div><h3 style={{ marginTop:0,color:"#e91e63" }}>{activeHint.title}</h3><p style={{ color:"#333",lineHeight:"1.6",margin:0 }}>{activeHint.content}</p></div>}
+        >
+          {/* Wrapper: relative anchor for the gradient overlay */}
+          <div style={{ position:"relative",maxWidth:"750px",width:"100%" }} onClick={(e) => e.stopPropagation()}>
+            {/* Modal = the scroll container itself. maxHeight+overflow-y:auto is all that's needed —
+                no flex tricks. Short content: shrinks to fit. Tall content: caps at 88dvh and scrolls. */}
+            <div
+              ref={hintScrollRef}
+              style={{ backgroundColor:"#fff",borderRadius:"20px",maxHeight:"88dvh",overflowY:"auto",WebkitOverflowScrolling:"touch",touchAction:"pan-y",boxShadow:"0 12px 36px rgba(0,0,0,0.25)" }}
+              onScroll={(e) => { const el = e.currentTarget; setHintAtBottom(el.scrollHeight - el.scrollTop <= el.clientHeight + 8); }}
+            >
+              {/* Sticky header keeps the close button visible while scrolling */}
+              <div style={{ position:"sticky",top:0,display:"flex",justifyContent:"flex-end",padding:"10px 12px",backgroundColor:"#fff",borderRadius:"20px 20px 0 0",zIndex:1 }}>
+                <button
+                  onClick={() => { setActiveHint(null); setHintAtBottom(false); }}
+                  style={{ width:"32px",height:"32px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"none",fontSize:"18px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.15)",lineHeight:1 }}
+                >✕</button>
+              </div>
+              <div style={{ padding:"0 16px 20px" }}>
+                {activeHint.type === "image" && (
+                  <img
+                    src={activeHint.src}
+                    alt={activeHint.alt || "說明圖片"}
+                    draggable={false}
+                    style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block",WebkitUserDrag:"none",userSelect:"none" }}
+                  />
+                )}
+                {activeHint.type === "text" && (
+                  <>
+                    <h3 style={{ marginTop:0,color:"#e91e63" }}>{activeHint.title}</h3>
+                    <p style={{ color:"#333",lineHeight:"1.6",margin:0 }}>{activeHint.content}</p>
+                  </>
+                )}
+              </div>
             </div>
+            {/* Gradient sits outside the scroll container so it doesn't scroll away */}
             {!hintAtBottom && (
-              <div style={{ position:"absolute",bottom:0,left:0,right:0,height:"64px",background:"linear-gradient(to bottom,transparent,rgba(255,255,255,0.97))",pointerEvents:"none",borderRadius:"0 0 20px 20px",display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:"8px" }}>
-                <span style={{ fontSize:"1.1rem",color:"#ccc",lineHeight:1 }}>▾</span>
+              <div style={{ position:"absolute",bottom:0,left:0,right:0,height:"80px",background:"linear-gradient(to bottom,transparent,rgba(255,255,255,0.97))",pointerEvents:"none",borderRadius:"0 0 20px 20px",display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:"12px" }}>
+                <div className="modal-scroll-hint">下滑查看更多 ▾</div>
               </div>
             )}
           </div>

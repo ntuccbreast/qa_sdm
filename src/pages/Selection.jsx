@@ -14,7 +14,7 @@ const Selections = () => {
 
   useEffect(() => {
     // ✅ 交給 MainLayout 統一播放 TTS
-    const welcomeText = `${allAnswers.userName || "您"}您好，我可以幫您什麼呢？請根據您想使用的功能選擇。`;
+    const welcomeText = `${allAnswers.userName || ""}您好，我可以幫您什麼呢？請根據您想使用的功能選擇。`;
     setHeroData({ description: welcomeText });
   }, [allAnswers.userName, setHeroData]);
 
