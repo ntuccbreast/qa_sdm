@@ -106,8 +106,8 @@ const SDM = () => {
               <button onClick={() => { setActiveHint(null); setHintAtBottom(false); }}
                 style={{ width:"32px",height:"32px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"none",fontSize:"18px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.15)",lineHeight:1 }}>✕</button>
             </div>
-            <div style={{ position:"relative",flex:1,minHeight:0,display:"flex",flexDirection:"column" }}>
-              <div style={{ overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 16px 20px",flex:1,minHeight:0 }}
+            <div style={{ position:"relative",flex:1,minHeight:0,overflow:"hidden" }}>
+              <div style={{ position:"absolute",inset:0,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 16px 20px" }}
                 onScroll={(e) => { const el = e.currentTarget; setHintAtBottom(el.scrollHeight - el.scrollTop <= el.clientHeight + 8); }}>
                 {activeHint.type === "image" && <img src={activeHint.src} alt={activeHint.alt || "說明圖片"} style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block" }} />}
                 {activeHint.type === "text" && <div style={{ padding:"8px" }}><h3 style={{ marginTop:0,color:"#e91e63" }}>{activeHint.title}</h3><p style={{ color:"#333",lineHeight:"1.6",margin:0 }}>{activeHint.content}</p></div>}

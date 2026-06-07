@@ -131,8 +131,11 @@ export function useSpeech() {
         if (e.name !== "word" && e.name !== "sentence") return;
         const idx = e.charIndex;
         if (isIOS()) {
-          // Correct the polling loop's position estimate (don't kill the loop)
-          if (idx > 0) iosCorrectedCharRef.current = idx;
+          // On iOS: only use charIndex to correct the polling loop's forward estimate.
+          // Never call onSubtitle directly here — spurious low-index events would
+          // snap the subtitle back to the first phrase mid-speech.
+          if (idx > iosCorrectedCharRef.current) iosCorrectedCharRef.current = idx;
+          return;
         }
         const phrase =
           phrasesRef.current.find((p) => idx >= p.start && idx < p.end) ??
