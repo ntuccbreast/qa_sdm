@@ -323,7 +323,7 @@
   max-width: 480px;
   background: #ffffff;
   border-top: 1px solid #f0f0f0;
-  padding: 16px 16px 28px 16px;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom)) 16px;
   display: flex;
   flex-direction: row;
   gap: 12px;

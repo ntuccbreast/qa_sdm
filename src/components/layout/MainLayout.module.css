@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100svh;
+  height: 100dvh;
   overflow: hidden;
   background-color: #f5f5f5;
 }
@@ -37,6 +37,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
   display: block;
 }
 
@@ -170,7 +171,15 @@
 }
 
 .desktopOnly {
-  display: none; /* 桌機也隱藏 footer，保持乾淨 */
+  display: none;
+}
+
+@media (min-width: 481px) {
+  .desktopOnly {
+    display: block;
+    width: 390px;
+    text-align: center;
+  }
 }
 
 /* ✅ 手機：滿版，高度跟螢幕一樣 */
@@ -182,12 +191,14 @@
   }
   .phoneWrapper {
     width: 100%;
-    height: 100svh;
+    height: 100dvh;
     border-radius: 0;
     box-shadow: none;
     flex-shrink: 1;
+    padding-top: env(safe-area-inset-top);
+    box-sizing: border-box;
   }
   .videoSection {
-    flex: 0 0 180px;
+    flex: 0 0 220px;
   }
 }

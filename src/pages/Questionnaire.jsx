@@ -417,6 +417,7 @@ const Questionnaire = () => {
   // Hint bubbles: <span class="hint-trigger" data-hint-id="KEY"> → image/text modal
   const [ytModalVideoId, setYtModalVideoId] = useState(null);
   const [hintModalData, setHintModalData] = useState(null);
+  const [hintAtBottom, setHintAtBottom] = useState(false);
 
   const YT_ICON_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#FF0000" style="vertical-align:middle;cursor:pointer;flex-shrink:0"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
 
@@ -752,27 +753,46 @@ const Questionnaire = () => {
       {/* 💡 Hint Modal — 由 hint-trigger 觸發，顯示圖片或文字說明 */}
       {hintModalData && (
         <div
-          style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100vh",backgroundColor:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)",display:"flex",justifyContent:"center",alignItems:"center",zIndex:9999,padding:"20px",boxSizing:"border-box" }}
-          onClick={() => setHintModalData(null)}
+          style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",backgroundColor:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)",display:"flex",justifyContent:"center",alignItems:"center",zIndex:9999,padding:"16px",boxSizing:"border-box" }}
+          onClick={() => { setHintModalData(null); setHintAtBottom(false); }}
         >
           <div
-            style={{ position:"relative",backgroundColor:"#fff",borderRadius:"20px",padding:"48px 20px 20px",maxWidth:"750px",width:"100%",boxShadow:"0 12px 36px rgba(0,0,0,0.25)" }}
+            style={{ display:"flex",flexDirection:"column",backgroundColor:"#fff",borderRadius:"20px",maxWidth:"750px",width:"100%",maxHeight:"88dvh",boxShadow:"0 12px 36px rgba(0,0,0,0.25)",overflow:"hidden" }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button inside the box — always visible */}
-            <button
-              onClick={() => setHintModalData(null)}
-              style={{ position:"absolute",top:"12px",right:"14px",width:"30px",height:"30px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"none",fontSize:"16px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.15)" }}
-            >✕</button>
-            {hintModalData.type === "image" && (
-              <img src={hintModalData.src} alt={hintModalData.alt || "說明圖片"} style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block" }} />
-            )}
-            {hintModalData.type === "text" && (
-              <div style={{ padding:"8px" }}>
-                <h3 style={{ marginTop:0,color:"#e91e63" }}>{hintModalData.title}</h3>
-                <p style={{ color:"#333",lineHeight:"1.6",margin:0 }}>{hintModalData.content}</p>
+            {/* Fixed header — only close button */}
+            <div style={{ display:"flex",justifyContent:"flex-end",padding:"10px 12px",flexShrink:0 }}>
+              <button
+                onClick={() => { setHintModalData(null); setHintAtBottom(false); }}
+                style={{ width:"32px",height:"32px",borderRadius:"50%",backgroundColor:"#f4a2b4",color:"#fff",border:"none",fontSize:"18px",fontWeight:"bold",cursor:"pointer",display:"flex",justifyContent:"center",alignItems:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.15)",lineHeight:1 }}
+              >✕</button>
+            </div>
+            {/* Scrollable body with bottom-fade scroll indicator */}
+            <div style={{ position:"relative",flex:1,minHeight:0 }}>
+              <div
+                style={{ overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"0 16px 20px",height:"100%" }}
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  setHintAtBottom(el.scrollHeight - el.scrollTop <= el.clientHeight + 8);
+                }}
+              >
+                {hintModalData.type === "image" && (
+                  <img src={hintModalData.src} alt={hintModalData.alt || "說明圖片"} style={{ width:"100%",height:"auto",borderRadius:"12px",display:"block" }} />
+                )}
+                {hintModalData.type === "text" && (
+                  <div style={{ padding:"8px" }}>
+                    <h3 style={{ marginTop:0,color:"#e91e63" }}>{hintModalData.title}</h3>
+                    <p style={{ color:"#333",lineHeight:"1.6",margin:0 }}>{hintModalData.content}</p>
+                  </div>
+                )}
               </div>
-            )}
+              {/* Gradient fade — visible until scrolled to bottom */}
+              {!hintAtBottom && (
+                <div style={{ position:"absolute",bottom:0,left:0,right:0,height:"64px",background:"linear-gradient(to bottom,transparent,rgba(255,255,255,0.97))",pointerEvents:"none",display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:"8px" }}>
+                  <span style={{ fontSize:"1.1rem",color:"#ccc",lineHeight:1 }}>▾</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

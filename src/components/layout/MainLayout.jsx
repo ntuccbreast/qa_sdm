@@ -96,6 +96,16 @@ const MainLayout = () => {
     }
   };
 
+  const handlePlay = (e) => {
+    e.stopPropagation();
+    const raw = heroData?.description;
+    if (!raw) return;
+    const cleanText = raw.replace(/<[^>]*>/g, "").trim();
+    if (!cleanText) return;
+    const alreadyHeard = heardTextsRef.current.has(cleanText);
+    doSpeak(cleanText, alreadyHeard);
+  };
+
   const handleReplay = (e) => {
     e.stopPropagation();
     const text = currentTextRef.current;
@@ -122,6 +132,11 @@ const MainLayout = () => {
               <span className={isPaused ? styles.audioDotPaused : styles.audioDot} />
               {isPaused ? "已暫停" : "說明中..."}
             </div>
+          )}
+          {!isPlaying && !hasEnded && heroData?.description && (
+            <button className={styles.controlBtnTopRight} onClick={handlePlay}>
+              ▶ 播放說明
+            </button>
           )}
           {isPlaying && (
             <button className={styles.controlBtnTopRight} onClick={handleTogglePlay}>
