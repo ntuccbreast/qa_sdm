@@ -112,7 +112,7 @@
 /* Helper avatar button — appears over video section on questionnaire pages */
 .helperBtnWrap {
   position: absolute;
-  bottom: 10px;
+  top: 48px;
   right: 10px;
   z-index: 4;
   display: flex;
