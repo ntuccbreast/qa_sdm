@@ -100,10 +100,9 @@ const Questionnaire = () => {
 
     const handleResize = () => {
       if (chatbotRef.current) {
+        // Only adjust height — left/width are CSS-controlled inside phoneWrapper.
+        // viewport.height shrinks when the keyboard opens on iOS.
         chatbotRef.current.style.height = `${viewport.height}px`;
-        chatbotRef.current.style.top = `${viewport.offsetTop}px`;
-        chatbotRef.current.style.left = `${viewport.offsetLeft}px`;
-        chatbotRef.current.style.width = `${viewport.width}px`;
       }
     };
 
@@ -116,9 +115,6 @@ const Questionnaire = () => {
       viewport.removeEventListener("scroll", handleResize);
       if (chatbotRef.current) {
         chatbotRef.current.style.height = "";
-        chatbotRef.current.style.top = "";
-        chatbotRef.current.style.left = "";
-        chatbotRef.current.style.width = "";
       }
     };
   }, [isChatbotOpen]);
@@ -479,7 +475,10 @@ const Questionnaire = () => {
     if (hintTrigger) {
       const id = hintTrigger.getAttribute("data-hint-id");
       const hint = currentQ?.hints?.[id];
-      if (hint) setHintModalData(hint);
+      if (hint) {
+        if (hint.type === "image") setZoomedSrc(hint.src);
+        else setHintModalData(hint);
+      }
     }
   };
 
@@ -845,7 +844,7 @@ const Questionnaire = () => {
 
       {zoomedSrc && (
         <div
-          style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",background:"rgba(0,0,0,0.93)",zIndex:10001,overflow:"auto",boxSizing:"border-box",padding:"52px 0 24px",touchAction:"pan-x pan-y pinch-zoom" }}
+          style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",background:"rgba(0,0,0,0.93)",zIndex:10001,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",boxSizing:"border-box",padding:"52px 12px 36px",touchAction:"pan-x pan-y pinch-zoom" }}
           onClick={() => setZoomedSrc(null)}
         >
           <button
@@ -856,9 +855,9 @@ const Questionnaire = () => {
             src={zoomedSrc}
             draggable={false}
             onClick={(e) => e.stopPropagation()}
-            style={{ display:"block",margin:"0 auto",width:"100%",maxWidth:"960px",height:"auto",padding:"0 12px",boxSizing:"border-box",WebkitUserDrag:"none",userSelect:"none",borderRadius:"8px",touchAction:"pan-x pan-y pinch-zoom" }}
+            style={{ display:"block",maxWidth:"100%",maxHeight:"calc(100dvh - 100px)",width:"auto",height:"auto",objectFit:"contain",WebkitUserDrag:"none",userSelect:"none",borderRadius:"8px",touchAction:"pan-x pan-y pinch-zoom" }}
           />
-          <p style={{ textAlign:"center",color:"rgba(255,255,255,0.4)",fontSize:"0.76rem",margin:"14px 0 0",letterSpacing:"0.3px" }}>點擊空白處關閉</p>
+          <p style={{ textAlign:"center",color:"rgba(255,255,255,0.4)",fontSize:"0.76rem",margin:"12px 0 0",letterSpacing:"0.3px",flexShrink:0 }}>點擊空白處關閉</p>
         </div>
       )}
 
@@ -938,6 +937,7 @@ const Questionnaire = () => {
           </div>
 
           <div className={styles.inputArea}>
+            <div className={styles.inputPill}>
             <textarea
               ref={inputRef}
               rows="1"
@@ -974,6 +974,7 @@ const Questionnaire = () => {
             >
               詢問
             </button>
+            </div>
           </div>
 
           <div className={styles.chatbotExitArea}>

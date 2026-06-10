@@ -82,7 +82,10 @@ const SDM = () => {
     if (trigger) {
       const hintId = trigger.getAttribute("data-hint-id");
       const hintData = topicDescriptions[selectedTopicId]?.hints?.[hintId];
-      if (hintData) setActiveHint(hintData);
+      if (hintData) {
+        if (hintData.type === "image") setZoomedSrc(hintData.src);
+        else setActiveHint(hintData);
+      }
     }
   };
 
@@ -182,7 +185,7 @@ const SDM = () => {
 
       {zoomedSrc && (
         <div
-          style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",background:"rgba(0,0,0,0.93)",zIndex:10001,overflow:"auto",boxSizing:"border-box",padding:"52px 0 24px",touchAction:"pan-x pan-y pinch-zoom" }}
+          style={{ position:"fixed",top:0,left:0,width:"100vw",height:"100dvh",background:"rgba(0,0,0,0.93)",zIndex:10001,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",boxSizing:"border-box",padding:"52px 12px 36px",touchAction:"pan-x pan-y pinch-zoom" }}
           onClick={() => setZoomedSrc(null)}
         >
           <button
@@ -193,9 +196,9 @@ const SDM = () => {
             src={zoomedSrc}
             draggable={false}
             onClick={(e) => e.stopPropagation()}
-            style={{ display:"block",margin:"0 auto",width:"100%",maxWidth:"960px",height:"auto",padding:"0 12px",boxSizing:"border-box",WebkitUserDrag:"none",userSelect:"none",borderRadius:"8px",touchAction:"pan-x pan-y pinch-zoom" }}
+            style={{ display:"block",maxWidth:"100%",maxHeight:"calc(100dvh - 100px)",width:"auto",height:"auto",objectFit:"contain",WebkitUserDrag:"none",userSelect:"none",borderRadius:"8px",touchAction:"pan-x pan-y pinch-zoom" }}
           />
-          <p style={{ textAlign:"center",color:"rgba(255,255,255,0.4)",fontSize:"0.76rem",margin:"14px 0 0",letterSpacing:"0.3px" }}>點擊空白處關閉</p>
+          <p style={{ textAlign:"center",color:"rgba(255,255,255,0.4)",fontSize:"0.76rem",margin:"12px 0 0",letterSpacing:"0.3px",flexShrink:0 }}>點擊空白處關閉</p>
         </div>
       )}
     </div>
