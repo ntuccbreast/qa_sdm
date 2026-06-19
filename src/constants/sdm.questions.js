@@ -284,8 +284,6 @@ export const questionsBctSm = [
       <br/>
       <p><em>注意：無論立即或延遲重建，重建後的外觀與觸感和原本自然的乳房都有差異——形狀、對稱性、乳頭乳暈都可能不同。</em></p>
       <br/>
-      <p>手術順利完成，術後有傷口引流管。約 <strong>7～14 天</strong>後回診，評估傷口並檢視病理報告。</p>
-      <br/>
       <p><strong>了解三種可能後，關於外觀與重建，您的想法是？</strong></p>
     `,
     hints: {
@@ -312,6 +310,8 @@ export const questionsBctSm = [
       第二種：淋巴結感染比較嚴重，需要進行腋下淋巴廓清手術，確保清除殘餘癌細胞。
     `,
     question: `
+      <p>手術順利完成，術後有傷口引流管。約 <strong>7～14 天</strong>後回診，評估傷口並檢視病理報告。</p>
+      <br/>
       <p><strong>【淋巴結評估：兩種可能】</strong></p>
       <br/>
       <p>✅ <strong>情況一：不需進一步廓清</strong><br/>
@@ -351,7 +351,8 @@ export const questionsBctSm = [
       <p>若荷爾蒙受體陽性，需服用<strong>抗荷爾蒙藥物</strong>，療程約 5～10 年。</p>
     `,
     hints: {},
-    options: [{ label: "治療完成，進入定期追蹤", nextId: "SM_B4_FOLLOWUP" }],
+    options: [],
+    nextId: "SM_B4_FOLLOWUP",
   },
 
   {
@@ -376,7 +377,6 @@ export const questionsBctSm = [
       { label: "我已了解兩者差異，看最終建議", isFinal: true },
     ],
   },
-
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
