@@ -65,8 +65,8 @@ export const getBctSmFinalResult = (ultimateChoice, latestAnswers) => {
   if (reopAnswer) {
     summaryItems.push(
       reopAnswer.includes("可以接受")
-        ? "✅ 您<strong>能接受</strong>部分乳房切除後再次手術的可能性"
-        : "⚠️ 您<strong>不想承擔</strong>再次手術的風險"
+        ? "✅ 您<strong>能接受</strong>部分乳房切除後邊緣不足再開一次刀的風險（約兩成機率）"
+        : "⚠️ 您<strong>不想承擔</strong>邊緣不足再開一次刀的風險"
     );
   }
 
