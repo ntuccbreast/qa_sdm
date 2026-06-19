@@ -70,25 +70,21 @@ export const topicDescriptions = {
 // Output: { type: "BCT"|"SM", title: string, description: string }
 
 export const getBctSmResult = (finalAnswers) => {
-  const isAppearanceImportant = finalAnswers["Q_APPEARANCE"]?.includes("很重要");
-  const isWantRecon = finalAnswers["Q_RECONSTRUCTION"]?.includes("有意願");
-  const isAcceptingReop = finalAnswers["Q_REOPERATION"]?.includes("可以接受");
-
-  // Any radiation-related "不想" → patient rejects radiation
-  const isRejectingRad =
-    finalAnswers["Q_RADIATION_TIME"]?.includes("不想") ||
-    finalAnswers["Q_RADIATION_SIDE_EFFECT_SKIN"]?.includes("不想") ||
-    finalAnswers["Q_RADIATION_SIDE_EFFECT_HEARTLUNG"]?.includes("不想");
+  // Updated IDs: Q_BREAST_IMAGE, BCT_A2_MARGIN_LN, BCT_A5_RADIATION, Q_RECONSTRUCTION_FEEL
+  const isAppearanceImportant = finalAnswers["Q_BREAST_IMAGE"]?.includes("很重要");
+  const isWantRecon = finalAnswers["Q_RECONSTRUCTION_FEEL"]?.includes("有意願");
+  const isAcceptingReop = finalAnswers["BCT_A2_MARGIN_LN"]?.includes("可以接受");
+  const isRejectingRad = finalAnswers["BCT_A5_RADIATION"]?.includes("壓力");
 
   const reconSuffix = isWantRecon || isAppearanceImportant ? "合併重建" : "";
 
-  // Case 1: rejects radiation → SM (BCT always requires radiation)
+  // Case 1: rejects radiation → SM (BCT侵襲性幾乎必做放療)
   if (isRejectingRad) {
     return {
       type: "SM",
       title: `建議方案：全乳房切除及前哨淋巴結切片手術${reconSuffix}`,
       description:
-        "由於您對<b>放射線治療</b>有較多顧慮，而「部分乳房切除手術」必須搭配放療。因此，選擇全乳房切除能避開長期的放療療程與副作用，較符合您的需求。",
+        "由於您對<b>放射線治療</b>有較多顧慮，而「部分乳房切除手術」侵襲性乳癌幾乎必須搭配放療。因此，選擇全乳房切除能避開長期的放療療程與副作用，較符合您的需求。",
     };
   }
 

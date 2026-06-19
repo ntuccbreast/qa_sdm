@@ -236,7 +236,7 @@ const Questionnaire = () => {
       setViewedCases((prev) => new Set(prev).add(currentId));
     if (currentId === "BCT_A7_FINISH")
       setCompletedRoutes((prev) => new Set(prev).add("BCT"));
-    if (currentId === "SM_B6_FINISH")
+    if (currentId === "SM_B5_FINISH")
       setCompletedRoutes((prev) => new Set(prev).add("SM"));
   }, [currentId]);
 
@@ -376,8 +376,7 @@ const Questionnaire = () => {
         const excludedIds = [
           "BCTSM_START",
           "BCT_A7_FINISH",
-          "SM_B6_FINISH",
-          "SM_B3_TREATMENT_MATRIX",
+          "SM_B5_FINISH",
         ];
         return qDef && qDef.options?.length >= 2 && !excludedIds.includes(id);
       })
@@ -728,20 +727,14 @@ const Questionnaire = () => {
             {/* 3. 選項群組 */}
             <div className={`${styles.optionsGroup} ${isLockedByVideoVisual ? styles.lockedBox : ""}`}>
               {currentQ.options?.map((opt, index) => {
-                const isSMMatrix = currentId === "SM_B3_TREATMENT_MATRIX";
                 const isFinished =
-                  (isSMMatrix &&
-                    viewedCases.has(
-                      opt.nextId === "SM_CASE_1" ? "SM_CASE_1_RAD" : opt.nextId,
-                    )) ||
                   (opt.nextId === "BCT_A1_OP" && completedRoutes.has("BCT")) ||
                   (opt.nextId === "SM_B1_OP" && completedRoutes.has("SM"));
 
                 const isDisabledVideoLock = isLockedByVideoLogical;
                 const isDisabledBusinessLock =
                   !isDev &&
-                  ((isSMMatrix && opt.nextId === "SM_B6_FINISH" && !isAllCasesViewed) ||
-                    (opt.nextId === "Q_APPEARANCE" && !isBothRoutesViewed));
+                  (opt.nextId === "Q_BREAST_IMAGE" && !isBothRoutesViewed);
                 const isDisabled = isDisabledVideoLock || isDisabledBusinessLock;
 
                 return (

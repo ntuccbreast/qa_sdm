@@ -110,6 +110,7 @@ export const questionsBctSm = [
       第二種：邊緣太近或淋巴結感染較多顆，這時候需要再次手術。
       邊緣不足的話，需要再切更多乳房組織；
       淋巴結感染多顆的話，需要進行腋下淋巴廓清手術。
+      現在，我想請問您對這個可能性的感受。
     `,
     question: `
       <p><strong>【病理報告：兩種可能】</strong></p>
@@ -121,9 +122,13 @@ export const questionsBctSm = [
       安全邊緣<strong>太近</strong>：需再次切除更多乳房組織（可選部分或全切除）<br/>
       淋巴結感染<strong>多顆</strong>：需進行腋下淋巴廓清手術<br/>
       再次手術後，傷口順利癒合。</p>
+      <br/>
+      <p><strong>面對部分乳房切除後「可能需要再次手術」的這個不確定性，您的感受是？</strong></p>
     `,
-    options: [],
-    nextId: "BCT_A4_CHEMO",
+    options: [
+      { label: "可以接受——確認切除乾淨比較重要", nextId: "BCT_A4_CHEMO" },
+      { label: "我不想承擔還要再開一次刀的可能", nextId: "BCT_A4_CHEMO" },
+    ],
   },
 
   {
@@ -185,10 +190,19 @@ export const questionsBctSm = [
       </p>
       <br/>
       <p>若荷爾蒙受體陽性，放療結束後需服用<strong>抗荷爾蒙藥物</strong>，療程約 5～10 年。</p>
+      <br/>
+      <p><strong>根據您的狀況，若需要放療，這樣連續每天前往醫院的安排，您能接受嗎？</strong></p>
     `,
     hints: {},
     options: [
-      { label: "放射線治療完成，進入定期追蹤", nextId: "BCT_A6_FOLLOWUP" },
+      {
+        label: "我可以接受——這對我生活的影響是可克服的",
+        nextId: "BCT_A6_FOLLOWUP",
+      },
+      {
+        label: "這樣的安排讓我感到壓力，是我的顧慮之一",
+        nextId: "BCT_A6_FOLLOWUP",
+      },
     ],
   },
 
@@ -241,6 +255,8 @@ export const questionsBctSm = [
       </p>
       <br/>
       <p>手術順利完成，術後有傷口引流管。約 <strong>7～14 天</strong>後回診，評估傷口並檢視病理報告。</p>
+      <br/>
+      <p><strong>了解全乳房切除手術後，關於切除整個乳房這件事，您的感受是？</strong></p>
     `,
     hints: {
       bctsm_sm_flow: {
@@ -250,7 +266,14 @@ export const questionsBctSm = [
       },
     },
     options: [
-      { label: "等待病理報告，了解淋巴結評估結果", nextId: "SM_B2_LN" },
+      {
+        label: "我能接受——視需要可搭配重建",
+        nextId: "SM_B2_LN",
+      },
+      {
+        label: "切除整個乳房讓我感到困擾，乳房外觀對我很重要",
+        nextId: "SM_B2_LN",
+      },
     ],
   },
 
@@ -333,6 +356,11 @@ export const questionsBctSm = [
   {
     id: "Q_BREAST_IMAGE",
     topic: "保留乳房對您有多重要？",
+    assistantScript: `
+      體驗完兩條路之後，我想請您回想一下剛才的感受。
+      保留乳房的外觀，對您來說有多重要？
+      這個問題沒有標準答案，每個人的優先順序都不同。
+    `,
     question: `
       <p>體驗過兩條路之後，回想一下：</p>
       <br/>
@@ -343,47 +371,10 @@ export const questionsBctSm = [
     options: [
       {
         label: "保留乳房對我來說很重要，這是我在意的事",
-        nextId: "Q_RADIATION_FEEL",
-      },
-      { label: "保留乳房對我來說不是最優先考量", nextId: "Q_RADIATION_FEEL" },
-    ],
-  },
-  {
-    id: "Q_RADIATION_FEEL",
-    topic: "對放射線治療的感受",
-    videoUrl: "https://www.youtube.com/watch?v=Vh217ZogKwQ",
-    linkText: " [影片：乳癌放射線治療要做多久？多久一次？]",
-    question: `
-      <p>回想剛才體驗的部分乳房切除旅程——</p>
-      <br/>
-      <p>想到每天去醫院做放療，連續 <strong>4～8 週</strong>，這樣的安排對您來說：</p>
-    `,
-    options: [
-      {
-        label: "我可以接受，這對我生活的影響是可克服的",
-        nextId: "Q_REOPERATION_FEEL",
-      },
-      {
-        label: "這對我的生活影響太大，讓我感到壓力",
-        nextId: "Q_REOPERATION_FEEL",
-      },
-    ],
-  },
-  {
-    id: "Q_REOPERATION_FEEL",
-    topic: "對再次手術可能性的感受",
-    question: `
-      <p>部分乳房切除後，若安全邊緣不足，<strong>可能需要再次手術</strong>。</p>
-      <br/>
-      <p>面對這個不確定性，您的感受是？</p>
-    `,
-    options: [
-      {
-        label: "我可以接受，確認清楚比較重要",
         nextId: "Q_RECONSTRUCTION_FEEL",
       },
       {
-        label: "我不想承擔還要再開一次刀的可能",
+        label: "保留乳房對我來說不是最優先考量",
         nextId: "Q_RECONSTRUCTION_FEEL",
       },
     ],
