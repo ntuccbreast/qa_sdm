@@ -78,15 +78,21 @@ export const questionsBctSm = [
     assistantScript: `
       現在進入部分乳房切除合併前哨淋巴結切片手術的體驗。
       手術中，醫師會切除腫瘤和周圍少量組織，保留大部分的乳房，同時進行前哨淋巴結切片。
-      切除的位置和範圍，可能造成乳房輕微凹陷或兩側不對稱，多數在可接受範圍內。
-      如果之後對外觀有困擾，也可以評估重建選項。
+      手術前，醫師也會詢問您是否要同時進行立即乳房重建手術。
+      部分乳房切除的重建目的是補足切除後造成的凹陷或不對稱，
+      通常利用鄰近組織位移，範圍比全切除的重建小得多，也可以選擇延遲到治療後再評估。
     `,
     question: `
       <p><strong>【部分乳房切除合併前哨淋巴結切片手術】</strong></p>
       <br/>
       <p>${hintBctSm("bctsm_bct_flow")}手術中，醫師切除腫瘤及周圍少量組織，<strong>保留大部分乳房</strong>，同時進行前哨淋巴結切片。</p>
       <br/>
-      <p><strong>手術後可能的外觀變化：</strong><br/>切除位置可能造成輕微凹陷或兩側不對稱，多數在可接受範圍內。若有外觀困擾，治療結束後可評估重建。</p>
+      <p><strong>手術前可先思考：是否要立即局部重建？</strong></p>
+      <p>
+        ✦ <strong>立即重建</strong>（同次手術）：利用鄰近組織補足凹陷，自費<br/>
+        ✦ <strong>延遲重建</strong>：等治療全部結束後再評估<br/>
+        ✦ <strong>不重建</strong>：多數人外觀改變在可接受範圍內，不一定需要
+      </p>
       <br/>
       <p>手術順利完成，沒有發生合併症。醫護人員為您預約 <strong>7～14 天後</strong>回診，評估傷口並檢視病理報告。</p>
     `,
@@ -97,81 +103,58 @@ export const questionsBctSm = [
         alt: "部分乳房切除合併前哨淋巴結切片治療流程圖",
       },
     },
-    options: [
-      { label: "先看第一種情況：邊緣足夠、淋巴結無轉移", nextId: "BCT_A2_MARGINLN_CHECK" },
-    ],
+    options: [],
+    nextId: "BCT_A2_MARGIN_LN",
   },
 
   {
-    id: "BCT_A2_MARGINLN_CHECK",
-    topic: "BCT｜病理報告：邊緣足夠（情況一）",
-    question: `
-      <p><strong>【情況一：不需再次手術】</strong></p>
-      <br/>
-      <p>病理報告顯示乳房安全邊緣<strong>足夠</strong>、前哨淋巴結<strong>無轉移</strong>或輕微感染，手術圓滿完成，不需再動手術。</p>
+    id: "BCT_A2_MARGIN_LN",
+    topic: "BCT｜病理報告：邊緣與淋巴結評估",
+    assistantScript: `
+      7 到 14 天後，病理報告出爐了。
+      報告結果有兩種可能。
+      第一種：邊緣足夠、淋巴結無轉移，這是最理想的情況，手術就圓滿完成了。
+      第二種：邊緣太近或淋巴結感染較多顆，這時候需要再次手術。
+      邊緣不足的話，需要再切更多乳房組織；
+      淋巴結感染多顆的話，需要進行腋下淋巴廓清手術。
     `,
-    options: [
-      { label: "再看另一種情況：邊緣太近或淋巴結感染多顆", nextId: "BCT_A2_2NDOP_YES" },
-    ],
-  },
-
-  {
-    id: "BCT_A2_2NDOP_YES",
-    topic: "BCT｜病理報告：需再次手術（情況二）",
     question: `
-      <p><strong>【情況二：需要再次手術】</strong></p>
+      <p><strong>【病理報告：兩種可能】</strong></p>
       <br/>
-      <p>病理報告顯示安全邊緣<strong>太近</strong>，或淋巴結感染較嚴重：</p>
-      <p>
-        <strong>邊緣不足</strong>：需再次切除更多乳房組織（可選部分或全切除）<br/>
-        <strong>淋巴結感染多顆</strong>：需進行腋下淋巴廓清手術
-      </p>
+      <p>✅ <strong>情況一：不需再次手術</strong><br/>
+      安全邊緣<strong>足夠</strong>、前哨淋巴結<strong>無轉移</strong>或輕微感染 → 手術圓滿完成</p>
       <br/>
-      <p>再次手術後，傷口順利癒合。</p>
+      <p>⚠️ <strong>情況二：需要再次手術</strong><br/>
+      安全邊緣<strong>太近</strong>：需再次切除更多乳房組織（可選部分或全切除）<br/>
+      淋巴結感染<strong>多顆</strong>：需進行腋下淋巴廓清手術<br/>
+      再次手術後，傷口順利癒合。</p>
     `,
-    options: [
-      { label: "接下來，醫師評估後續治療方案", nextId: "BCT_A4_CHEMO_CHECK" },
-    ],
+    options: [],
+    nextId: "BCT_A4_CHEMO",
   },
 
   {
-    id: "BCT_A4_CHEMO_CHECK",
+    id: "BCT_A4_CHEMO",
     topic: "BCT｜化學治療評估",
-    question: `
-      <p><strong>【化學治療評估】</strong></p>
-      <br/>
-      <p>完成手術後，醫師根據腫瘤大小、細胞特性及淋巴結狀態，評估是否需要化療。</p>
-    `,
-    options: [
-      { label: "先看情況一：需要化療", nextId: "BCT_A4_CHEMO_YES" },
-    ],
-  },
-
-  {
-    id: "BCT_A4_CHEMO_YES",
-    topic: "BCT｜需要化學治療",
     videoUrl: "https://youtu.be/oxCrG5yD3t0?si=zJVfWei0wiG8ZfrR",
-    question: `
-      <p><strong>【情況一：需要化療】</strong></p>
-      <br/>
-      <p>化療約 3～6 個月。<strong>必須先完成化療</strong>，間隔約 4 週讓身體修復後，才進入放射線治療。</p>
+    assistantScript: `
+      完成手術後，醫師會評估是否需要化療。
+      需要化療的話，療程約 3 到 6 個月，必須先完成化療，
+      間隔約 4 週讓身體修復，再進入放射線治療。
+      不需要化療的話，傷口癒合後就可以直接開始放療。
+      不管有沒有化療，部分乳房切除幾乎都必須做放療。
     `,
-    options: [
-      { label: "再看情況二：不需要化療", nextId: "BCT_A4_CHEMO_NO" },
-    ],
-  },
-
-  {
-    id: "BCT_A4_CHEMO_NO",
-    topic: "BCT｜不需要化學治療",
     question: `
-      <p><strong>【情況二：不需要化療】</strong></p>
+      <p><strong>【化學治療評估：兩種可能】</strong></p>
       <br/>
-      <p>腫瘤性質不需化療，手術傷口癒合後<strong>直接開始放射線治療</strong>。</p>
+      <p>💊 <strong>情況一：需要化療</strong><br/>
+      療程約 3～6 個月，<strong>先完成化療</strong> → 間隔 4 週 → 再進入放射線治療</p>
+      <br/>
+      <p>✅ <strong>情況二：不需要化療</strong><br/>
+      腫瘤特性不需化療，傷口癒合後<strong>直接開始放射線治療</strong></p>
     `,
-    options: [
-      { label: "進入放射線治療", nextId: "BCT_A5_RADIATION" },
-    ],
+    options: [],
+    nextId: "BCT_A5_RADIATION",
   },
 
   {
@@ -269,34 +252,31 @@ export const questionsBctSm = [
       },
     },
     options: [
-      { label: "先看第一種情況：淋巴結無轉移或輕微", nextId: "SM_B2_LN_NORMAL" },
+      { label: "等待病理報告，了解淋巴結評估結果", nextId: "SM_B2_LN" },
     ],
   },
 
   {
-    id: "SM_B2_LN_NORMAL",
-    topic: "SM｜淋巴結評估：無需廓清（情況一）",
-    question: `
-      <p><strong>【情況一：不需進一步淋巴廓清】</strong></p>
-      <br/>
-      <p>前哨淋巴結<strong>無轉移或輕微感染</strong>，不需再動手術清除更多淋巴結。</p>
+    id: "SM_B2_LN",
+    topic: "SM｜淋巴結評估",
+    assistantScript: `
+      7 到 14 天後，病理報告出爐了。
+      淋巴結的結果有兩種可能。
+      第一種：前哨淋巴結無轉移或輕微感染，不需要再動手術清除更多淋巴結。
+      第二種：淋巴結感染比較嚴重，需要進行腋下淋巴廓清手術，確保清除殘餘癌細胞。
     `,
-    options: [
-      { label: "再看另一種情況：淋巴結感染顆數多", nextId: "SM_B2_LN_ALND" },
-    ],
-  },
-
-  {
-    id: "SM_B2_LN_ALND",
-    topic: "SM｜淋巴結評估：需要廓清（情況二）",
     question: `
-      <p><strong>【情況二：需要腋下淋巴廓清】</strong></p>
+      <p><strong>【淋巴結評估：兩種可能】</strong></p>
       <br/>
-      <p>淋巴結感染較嚴重，需進行<strong>腋下淋巴廓清手術</strong>，確保徹底清除殘餘癌細胞。廓清手術後傷口順利癒合。</p>
+      <p>✅ <strong>情況一：不需進一步廓清</strong><br/>
+      前哨淋巴結<strong>無轉移或輕微感染</strong> → 不需再動手術清除更多淋巴結</p>
+      <br/>
+      <p>⚠️ <strong>情況二：需要腋下淋巴廓清</strong><br/>
+      淋巴結感染<strong>較嚴重</strong> → 需進行腋下淋巴廓清手術，確保清除殘餘癌細胞<br/>
+      廓清手術後傷口順利癒合。</p>
     `,
-    options: [
-      { label: "醫師評估後續輔助治療", nextId: "SM_B3_TREATMENT" },
-    ],
+    options: [],
+    nextId: "SM_B3_TREATMENT",
   },
 
   {
