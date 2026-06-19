@@ -710,6 +710,22 @@ const Questionnaire = () => {
                 >
                   {isVideoFinished ? "切換為：未看完" : "切換為：已看完"}
                 </button>
+                <button
+                  onClick={() =>
+                    setCompletedRoutes(new Set(["BCT", "SM"]))
+                  }
+                  style={{
+                    background: isBothRoutesViewed ? "#52c41a" : "#722ed1",
+                    color: "#fff",
+                    border: "none",
+                    padding: "4px 10px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {isBothRoutesViewed ? "✓ 雙路線已解鎖" : "解鎖雙路線"}
+                </button>
               </div>
             )}
 
