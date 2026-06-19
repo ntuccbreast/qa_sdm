@@ -70,16 +70,18 @@ export const topicDescriptions = {
 // Output: { type: "BCT"|"SM", title: string, description: string }
 
 export const getBctSmResult = (finalAnswers) => {
-  // Updated IDs: Q_BREAST_IMAGE, BCT_A2_MARGIN_LN, BCT_A5_RADIATION, Q_RECONSTRUCTION_FEEL
-  const isAppearanceImportant = finalAnswers["BCT_A1_OP"]?.includes("很重要");
-  const isWantRecon = finalAnswers["SM_B1_RECON_Q"]?.includes("有意願");
+  const smAppearanceAnswer = finalAnswers["SM_B1_OP"];
+  // 外觀非常重要（第三選項）→ 傾向 BCT
+  const isAppearanceImportant = smAppearanceAnswer?.includes("非常重要");
+  // 有意願考慮重建（第二選項）
+  const isWantRecon = smAppearanceAnswer?.includes("有意願考慮重建");
   const isAcceptingReop = finalAnswers["BCT_A2_MARGIN_LN"]?.includes("可以接受");
   // 排程或副作用任一有顧慮 → 視為對放療有顧慮
   const isRejectingRad =
     finalAnswers["BCT_A5_RADIATION"]?.includes("壓力") ||
     finalAnswers["BCT_A5_SIDEEFFECT"]?.includes("顧慮");
 
-  const reconSuffix = isWantRecon || isAppearanceImportant ? "合併重建" : "";
+  const reconSuffix = isWantRecon ? "合併重建" : "";
 
   // Case 1: rejects radiation → SM (BCT侵襲性幾乎必做放療)
   if (isRejectingRad) {

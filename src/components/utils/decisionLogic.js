@@ -1,15 +1,15 @@
 /**
  * 判定 BCT vs SM 價值觀衝突
  *
- * 衝突條件：患者重視保留乳房（Q_BREAST_IMAGE），
+ * 衝突條件：患者重視保留乳房（SM_B1_OP 第三選項），
  * 但在旅程中表達對再次手術（BCT_A2_MARGIN_LN）、
  * 放療每日排程（BCT_A5_RADIATION）或放療副作用（BCT_A5_SIDEEFFECT）的顧慮。
  * 注意：排程與副作用是獨立的兩個軸，分開追蹤。
  */
 export const checkBctSmConflict = (latestAnswers) => {
-  // 保留乳房很重要 → 傾向 BCT（答案記錄在 BCT_A1_OP 的外觀問題）
+  // 外觀非常重要，希望保留原本乳房 → 傾向 BCT（答案記錄在 SM_B1_OP 的三選項問題）
   const wantsBreastPreservation =
-    latestAnswers["BCT_A1_OP"]?.includes("很重要") ? 1 : 0;
+    latestAnswers["SM_B1_OP"]?.includes("非常重要") ? 1 : 0;
 
   // BCT 旅程中：能接受再次手術？
   const canAcceptReop =
@@ -43,20 +43,22 @@ export const checkBctSmConflict = (latestAnswers) => {
  * 根據終極抉擇產出最後結果，並附上每個步驟的答案摘要。
  */
 export const getBctSmFinalResult = (ultimateChoice, latestAnswers) => {
-  const isWantRecon =
-    latestAnswers["SM_B1_RECON_Q"]?.includes("有意願");
+  const smAppearanceAnswer = latestAnswers["SM_B1_OP"];
+  const isWantRecon = smAppearanceAnswer?.includes("有意願考慮重建");
   const reconSuffix = isWantRecon ? "合併重建" : "";
 
   // ── 建立選擇摘要 ──
   const summaryItems = [];
 
-  const breastImportant = latestAnswers["BCT_A1_OP"];
-  if (breastImportant) {
-    summaryItems.push(
-      breastImportant.includes("很重要")
-        ? "✅ 保留乳房外觀對您來說<strong>很重要</strong>"
-        : "➡️ 保留乳房外觀不是您最優先的考量"
-    );
+  // SM_B1_OP 三選項：外觀與重建偏好（合併原 BCT_A1_OP 外觀問題 + SM_B1_RECON_Q）
+  if (smAppearanceAnswer) {
+    if (smAppearanceAnswer.includes("非常重要")) {
+      summaryItems.push("✅ 外觀對您來說<strong>非常重要</strong>，希望盡量保留原本的乳房");
+    } else if (smAppearanceAnswer.includes("有意願考慮重建")) {
+      summaryItems.push("✅ 您<strong>有意願</strong>考慮重建，能接受外觀改變（需自費）");
+    } else {
+      summaryItems.push("➡️ 您能接受<strong>外觀平整</strong>，不考慮重建");
+    }
   }
 
   const reopAnswer = latestAnswers["BCT_A2_MARGIN_LN"];
@@ -83,23 +85,6 @@ export const getBctSmFinalResult = (ultimateChoice, latestAnswers) => {
       radSideEffectAnswer.includes("可以接受")
         ? "✅ 您<strong>能接受</strong>放療的可能副作用（皮膚反應、心肺、疲倦）"
         : "⚠️ 放療的副作用讓您感到<strong>顧慮</strong>"
-    );
-  }
-
-  const smBreastAnswer = latestAnswers["SM_B1_OP"];
-  if (smBreastAnswer) {
-    summaryItems.push(
-      smBreastAnswer.includes("能接受")
-        ? "✅ 您<strong>能接受</strong>切除整個乳房（視需要可搭配重建）"
-        : "⚠️ 切除整個乳房讓您感到困擾，乳房外觀對您<strong>很重要</strong>"
-    );
-  }
-
-  if (isWantRecon !== undefined) {
-    summaryItems.push(
-      isWantRecon
-        ? "✅ 您<strong>有意願</strong>考慮乳房重建（需自費）"
-        : "➡️ 您目前不考慮重建"
     );
   }
 
