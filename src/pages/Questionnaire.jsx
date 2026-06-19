@@ -6,6 +6,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Button from "../components/common/Button";
 import OptionButton from "../components/common/OptionButton";
 import ConflictCard from "../components/common/ConflictCard";
+import ReviewCard from "../components/common/ReviewCard";
 import Stepper from "../components/common/Stepper";
 import helperIcon from "../assets/helperinside.png";
 import { useUI } from "../context/UIContext";
@@ -51,6 +52,8 @@ const Questionnaire = () => {
   const [isConflictMode, setIsConflictMode] = useState(false);
   const [conflictData, setConflictData] = useState(null);
   const [conflictChoice, setConflictChoice] = useState(null);
+  const [isReviewMode, setIsReviewMode] = useState(false);
+  const [reviewAnswers, setReviewAnswers] = useState({});
 
   // 🎯 新增：控制問卷頁面「下滑看更多」提示的狀態與 Ref
   const [showScrollHint, setShowScrollHint] = useState(false);
@@ -208,25 +211,27 @@ const Questionnaire = () => {
     setIsChatbotOpen(false);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 🎯 當切換題目、或是切換衝突模式時，重新計算是否需要顯示下滑提示
+  // 🎯 當切換題目、或是切換衝突/複習模式時，重新計算是否需要顯示下滑提示
   useEffect(() => {
     const timer = setTimeout(checkCanScroll, 300);
     return () => clearTimeout(timer);
-  }, [currentId, isConflictMode]);
+  }, [currentId, isConflictMode, isReviewMode]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     // ✅ 把每題的 assistantScript 放進 description，讓 MainLayout 統一播放 TTS
     const scriptText = isConflictMode
       ? "請針對您的顧慮做出最後權衡。"
-      : (currentQ?.assistantScript || currentQ?.descriptionText || "請詳閱說明再做出選擇或點擊下一步。");
+      : isReviewMode
+        ? "請確認您在旅程中的各項偏好選擇，若需調整可直接點選，完成後按確認看最終建議。"
+        : (currentQ?.assistantScript || currentQ?.descriptionText || "請詳閱說明再做出選擇或點擊下一步。");
     setHeroData({
       imageUrl:
         "https://web-production-fbb7b.up.railway.app/static/helperinside.png",
       title: topicDescriptions[topicKey]?.label || "問卷評估",
       description: scriptText,
     });
-  }, [currentId, isConflictMode, topicKey, currentQ, setHeroData]);
+  }, [currentId, isConflictMode, isReviewMode, topicKey, currentQ, setHeroData]);
 
 
 
@@ -236,7 +241,7 @@ const Questionnaire = () => {
       setViewedCases((prev) => new Set(prev).add(currentId));
     if (currentId === "BCT_A7_FINISH")
       setCompletedRoutes((prev) => new Set(prev).add("BCT"));
-    if (currentId === "SM_B6_FINISH")
+    if (currentId === "SM_B5_FINISH")
       setCompletedRoutes((prev) => new Set(prev).add("SM"));
   }, [currentId]);
 
@@ -341,6 +346,7 @@ const Questionnaire = () => {
 
   const handleBack = () => {
     if (isConflictMode) return setIsConflictMode(false);
+    if (isReviewMode) return setIsReviewMode(false);
     if (history.length > 0) {
       const lastId = history[history.length - 1];
       setHistory(history.slice(0, -1));
@@ -376,8 +382,7 @@ const Questionnaire = () => {
         const excludedIds = [
           "BCTSM_START",
           "BCT_A7_FINISH",
-          "SM_B6_FINISH",
-          "SM_B3_TREATMENT_MATRIX",
+          "SM_B5_FINISH",
         ];
         return qDef && qDef.options?.length >= 2 && !excludedIds.includes(id);
       })
@@ -405,6 +410,21 @@ const Questionnaire = () => {
         },
       },
     });
+  };
+
+  // 確認複習畫面的選擇，進行衝突判斷或直接產出結果
+  const handleReviewConfirm = () => {
+    setAllAnswers((prev) => ({ ...prev, answers: reviewAnswers }));
+    if (topicKey === "bctsm") {
+      const conflict = checkBctSmConflict(reviewAnswers);
+      if (conflict.hasConflict) {
+        setConflictData(conflict);
+        setIsReviewMode(false);
+        setIsConflictMode(true);
+        return;
+      }
+    }
+    finishAssessment(reviewAnswers);
   };
 
   const isLockedByVideoVisual = currentQ?.videoUrl && !isVideoFinished;
@@ -507,12 +527,10 @@ const Questionnaire = () => {
 
     if (currentQ.isFinal || selectedOpt?.isFinal) {
       if (topicKey === "bctsm") {
-        const conflict = checkBctSmConflict(latestAnswers);
-        if (conflict.hasConflict) {
-          setConflictData(conflict);
-          setIsConflictMode(true);
-          return;
-        }
+        // Always show review screen first so patient can revise answers
+        setReviewAnswers(latestAnswers);
+        setIsReviewMode(true);
+        return;
       }
       finishAssessment(latestAnswers);
     } else {
@@ -524,6 +542,7 @@ const Questionnaire = () => {
 
   const getRouteInfo = () => {
     if (isConflictMode) return { label: "解決選擇衝突", color: "#ff4d4f" };
+    if (isReviewMode) return { label: "確認您的偏好選擇", color: "#fa8c16" };
     if (currentId.startsWith("BCT_"))
       return {
         label: "體驗中：部分乳房切除合併前哨淋巴結切片流程",
@@ -622,6 +641,7 @@ const Questionnaire = () => {
           currentId={currentId}
           topic={currentQ?.topic ?? ""}
           isConflictMode={isConflictMode}
+          isReviewMode={isReviewMode}
         />
         {routeInfo && (
           <div className={styles.routeHeader}>
@@ -648,6 +668,16 @@ const Questionnaire = () => {
             setConflictChoice={setConflictChoice}
             onBack={() => setIsConflictMode(false)}
             onFinish={(txt) => finishAssessment(allAnswers.answers, txt)}
+            isEmbedded={true}
+          />
+        ) : isReviewMode ? (
+          <ReviewCard
+            localAnswers={reviewAnswers}
+            onAnswerChange={(id, val) =>
+              setReviewAnswers((prev) => ({ ...prev, [id]: val }))
+            }
+            onConfirm={handleReviewConfirm}
+            onBack={() => setIsReviewMode(false)}
             isEmbedded={true}
           />
         ) : (
@@ -711,6 +741,22 @@ const Questionnaire = () => {
                 >
                   {isVideoFinished ? "切換為：未看完" : "切換為：已看完"}
                 </button>
+                <button
+                  onClick={() =>
+                    setCompletedRoutes(new Set(["BCT", "SM"]))
+                  }
+                  style={{
+                    background: isBothRoutesViewed ? "#52c41a" : "#722ed1",
+                    color: "#fff",
+                    border: "none",
+                    padding: "4px 10px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {isBothRoutesViewed ? "✓ 雙路線已解鎖" : "解鎖雙路線"}
+                </button>
               </div>
             )}
 
@@ -728,20 +774,16 @@ const Questionnaire = () => {
             {/* 3. 選項群組 */}
             <div className={`${styles.optionsGroup} ${isLockedByVideoVisual ? styles.lockedBox : ""}`}>
               {currentQ.options?.map((opt, index) => {
-                const isSMMatrix = currentId === "SM_B3_TREATMENT_MATRIX";
                 const isFinished =
-                  (isSMMatrix &&
-                    viewedCases.has(
-                      opt.nextId === "SM_CASE_1" ? "SM_CASE_1_RAD" : opt.nextId,
-                    )) ||
                   (opt.nextId === "BCT_A1_OP" && completedRoutes.has("BCT")) ||
                   (opt.nextId === "SM_B1_OP" && completedRoutes.has("SM"));
 
                 const isDisabledVideoLock = isLockedByVideoLogical;
                 const isDisabledBusinessLock =
                   !isDev &&
-                  ((isSMMatrix && opt.nextId === "SM_B6_FINISH" && !isAllCasesViewed) ||
-                    (opt.nextId === "Q_APPEARANCE" && !isBothRoutesViewed));
+                  (opt.isFinal &&
+                    (currentId === "BCT_A7_FINISH" || currentId === "SM_B5_FINISH") &&
+                    !isBothRoutesViewed);
                 const isDisabled = isDisabledVideoLock || isDisabledBusinessLock;
 
                 return (
@@ -763,13 +805,13 @@ const Questionnaire = () => {
         )}
 
         {/* 下滑提示 */}
-        {showScrollHint && !isConflictMode && (
+        {showScrollHint && !isConflictMode && !isReviewMode && (
           <div className="scroll-down-tip">下滑還有內容喔 👇</div>
         )}
       </div>
 
       {/* 底部固定操作列 */}
-      {!isConflictMode && (
+      {!isConflictMode && !isReviewMode && (
         <div className={styles.fixedActionFooter}>
           <Button variant="outline" onClick={handleBack} style={{ flex: 1 }}>
             {history.length === 0 ? "返回介紹" : "上一步"}

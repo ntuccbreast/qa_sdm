@@ -23,11 +23,11 @@ const StyledStepLabel = styled(StepLabel)({
   },
 });
 
-const Stepper = ({ topicKey, currentId, topic = "", isConflictMode }) => {
+const Stepper = ({ topicKey, currentId, topic = "", isConflictMode, isReviewMode }) => {
   // 1. 定義不同主題的步驟
   const THEME_STEPS = {
     dcis: ["知識說明", "價值觀評估", "決策建議"],
-    bctsm: ["準備開始體驗", "治療流程體驗", "價值觀評估", "決策建議"],
+    bctsm: ["準備體驗", "治療體驗", "確認選擇", "決策建議"],
     //stvab: ["方案說明", "偏好釐清", "建議結果"],
     //reconstruction: ["時間評估", "需求分析", "建議結果"]
   };
@@ -43,11 +43,17 @@ const Stepper = ({ topicKey, currentId, topic = "", isConflictMode }) => {
   //   FINISH → 決策建議 (最後一步)
   const getActiveStep = () => {
     if (isConflictMode) return steps.length - 1;
+    if (isReviewMode) return 2;
     if (currentId === "FINISH") return steps.length - 1;
 
     if (topicKey === "bctsm") {
       if (currentId === "BCTSM_START") return 0;
-      if (currentId.startsWith("BCT_") || currentId.startsWith("SM_") || currentId.includes("CASE")) return 1;
+      if (
+        currentId.startsWith("BCT_") ||
+        currentId.startsWith("SM_") ||
+        currentId.includes("CASE")
+      )
+        return 1;
       if (currentId.startsWith("Q_")) return 2;
     }
 
