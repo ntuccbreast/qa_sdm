@@ -74,7 +74,10 @@ export const getBctSmResult = (finalAnswers) => {
   const isAppearanceImportant = finalAnswers["Q_BREAST_IMAGE"]?.includes("很重要");
   const isWantRecon = finalAnswers["Q_RECONSTRUCTION_FEEL"]?.includes("有意願");
   const isAcceptingReop = finalAnswers["BCT_A2_MARGIN_LN"]?.includes("可以接受");
-  const isRejectingRad = finalAnswers["BCT_A5_RADIATION"]?.includes("壓力");
+  // 排程或副作用任一有顧慮 → 視為對放療有顧慮
+  const isRejectingRad =
+    finalAnswers["BCT_A5_RADIATION"]?.includes("壓力") ||
+    finalAnswers["BCT_A5_SIDEEFFECT"]?.includes("顧慮");
 
   const reconSuffix = isWantRecon || isAppearanceImportant ? "合併重建" : "";
 

@@ -2,28 +2,35 @@
  * 判定 BCT vs SM 價值觀衝突
  *
  * 衝突條件：患者重視保留乳房（Q_BREAST_IMAGE），
- * 但在旅程中表達對再次手術（BCT_A2_MARGIN_LN）或放療（BCT_A5_RADIATION）的顧慮。
+ * 但在旅程中表達對再次手術（BCT_A2_MARGIN_LN）、
+ * 放療每日排程（BCT_A5_RADIATION）或放療副作用（BCT_A5_SIDEEFFECT）的顧慮。
+ * 注意：排程與副作用是獨立的兩個軸，分開追蹤。
  */
 export const checkBctSmConflict = (latestAnswers) => {
   // 保留乳房很重要 → 傾向 BCT
   const wantsBreastPreservation =
     latestAnswers["Q_BREAST_IMAGE"]?.includes("很重要") ? 1 : 0;
 
-  // BCT 旅程中：能接受再次手術？（含「可以接受」視為 OK）
+  // BCT 旅程中：能接受再次手術？
   const canAcceptReop =
     latestAnswers["BCT_A2_MARGIN_LN"]?.includes("可以接受") ? 1 : 0;
 
-  // BCT 旅程中：能接受放療安排？（含「可以接受」視為 OK）
-  const canAcceptRadiation =
+  // BCT 旅程中：能接受每日 4～8 週放療排程？（與副作用分開）
+  const canAcceptRadSchedule =
     latestAnswers["BCT_A5_RADIATION"]?.includes("可以接受") ? 1 : 0;
 
-  // 衝突一：想保留外觀 但 不接受再次手術（BCT 必須承擔此風險）
+  // BCT 旅程中：能接受放療副作用（皮膚/心肺/疲倦）？
+  const canAcceptRadSideEffect =
+    latestAnswers["BCT_A5_SIDEEFFECT"]?.includes("可以接受") ? 1 : 0;
+
+  // 衝突一：想保留外觀 但 不接受再次手術
   const reopConflict =
     wantsBreastPreservation === 1 && canAcceptReop === 0;
 
-  // 衝突二：想保留外觀 但 不接受放療（BCT 侵襲性幾乎必做放療）
+  // 衝突二：想保留外觀 但 對放療有顧慮（排程或副作用任一）
   const radConflict =
-    wantsBreastPreservation === 1 && canAcceptRadiation === 0;
+    wantsBreastPreservation === 1 &&
+    (canAcceptRadSchedule === 0 || canAcceptRadSideEffect === 0);
 
   return {
     hasConflict: reopConflict || radConflict,
@@ -61,12 +68,21 @@ export const getBctSmFinalResult = (ultimateChoice, latestAnswers) => {
     );
   }
 
-  const radAnswer = latestAnswers["BCT_A5_RADIATION"];
-  if (radAnswer) {
+  const radScheduleAnswer = latestAnswers["BCT_A5_RADIATION"];
+  if (radScheduleAnswer) {
     summaryItems.push(
-      radAnswer.includes("可以接受")
-        ? "✅ 您<strong>能接受</strong> 4～8 週的每日放療安排"
-        : "⚠️ 放療安排讓您感到壓力，是您的<strong>顧慮之一</strong>"
+      radScheduleAnswer.includes("可以接受")
+        ? "✅ 您<strong>能接受</strong> 4～8 週每天到醫院的放療排程"
+        : "⚠️ 每天往返的放療排程讓您感到<strong>壓力</strong>"
+    );
+  }
+
+  const radSideEffectAnswer = latestAnswers["BCT_A5_SIDEEFFECT"];
+  if (radSideEffectAnswer) {
+    summaryItems.push(
+      radSideEffectAnswer.includes("可以接受")
+        ? "✅ 您<strong>能接受</strong>放療的可能副作用（皮膚反應、心肺、疲倦）"
+        : "⚠️ 放療的副作用讓您感到<strong>顧慮</strong>"
     );
   }
 
