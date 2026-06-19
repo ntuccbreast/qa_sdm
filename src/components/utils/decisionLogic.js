@@ -90,20 +90,20 @@ export const getBctSmFinalResult = (ultimateChoice, latestAnswers) => {
 
   const summaryHtml =
     summaryItems.length > 0
-      ? `<br/><p><strong>您的選擇摘要：</strong></p><ul style="text-align:left;padding-left:1.2em;line-height:2">${summaryItems.map((s) => `<li>${s}</li>`).join("")}</ul>`
+      ? `<p><strong>您的選擇摘要：</strong></p><ul style="text-align:left;padding-left:1.2em;line-height:2">${summaryItems.map((s) => `<li>${s}</li>`).join("")}</ul><br/>`
       : "";
 
   if (ultimateChoice === "BCT") {
     return {
       type: "BCT",
       title: `最終建議：部分乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-      description: `在權衡過後，您決定以盡可能<b>保留乳房外觀</b>為首要考量。這代表您願意承擔因邊緣不乾淨而需要再次手術的可能性，並配合放射線治療。${summaryHtml}`,
+      description: `${summaryHtml}在權衡過後，您決定以盡可能<b>保留乳房外觀</b>為首要考量。這代表您願意承擔因邊緣不乾淨而需要再次手術的可能性，並配合放射線治療。`,
     };
   } else {
     return {
       type: "SM",
       title: `最終建議：全乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-      description: `在權衡過後，您決定以<b>治療過程的簡便</b>為首要考量。這代表您想避開因邊緣不乾淨而需要再次手術的可能性與放射線治療。${summaryHtml}`,
+      description: `${summaryHtml}在權衡過後，您決定以<b>治療過程的簡便</b>為首要考量。這代表您想避開因邊緣不乾淨而需要再次手術的可能性與放射線治療。`,
     };
   }
 };

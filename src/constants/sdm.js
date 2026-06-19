@@ -125,7 +125,7 @@ export const getBctSmResult = (finalAnswers) => {
 
   const summaryHtml =
     summaryItems.length > 0
-      ? `<br/><p><strong>您的選擇摘要：</strong></p><ul style="text-align:left;padding-left:1.2em;line-height:2">${summaryItems.map((s) => `<li>${s}</li>`).join("")}</ul>`
+      ? `<p><strong>您的選擇摘要：</strong></p><ul style="text-align:left;padding-left:1.2em;line-height:2">${summaryItems.map((s) => `<li>${s}</li>`).join("")}</ul><br/>`
       : "";
 
   // Case 1: rejects radiation → SM (BCT侵襲性幾乎必做放療)
@@ -133,7 +133,7 @@ export const getBctSmResult = (finalAnswers) => {
     return {
       type: "SM",
       title: `建議方案：全乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-      description: `由於您對<b>放射線治療</b>有較多顧慮，而「部分乳房切除手術」侵襲性乳癌幾乎必須搭配放療。因此，選擇全乳房切除能避開長期的放療療程與副作用，較符合您的需求。${summaryHtml}`,
+      description: `${summaryHtml}由於您對<b>放射線治療</b>有較多顧慮，而「部分乳房切除手術」侵襲性乳癌幾乎必須搭配放療。因此，選擇全乳房切除能避開長期的放療療程與副作用，較符合您的需求。`,
     };
   }
 
@@ -143,14 +143,14 @@ export const getBctSmResult = (finalAnswers) => {
       return {
         type: "BCT",
         title: `建議方案：部分乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-        description: `您在意乳房外觀，且願意承擔因邊緣不乾淨而需要再次手術的可能性與配合放療。<b>部分乳房切除</b>能最大程度保留您的自然胸型，是您的理想選擇。${summaryHtml}`,
+        description: `${summaryHtml}您在意乳房外觀，且願意承擔因邊緣不乾淨而需要再次手術的可能性與配合放療。<b>部分乳房切除</b>能最大程度保留您的自然胸型，是您的理想選擇。`,
       };
     }
     // Wants appearance preserved but refuses re-operation → SM + reconstruction
     return {
       type: "SM",
       title: `建議方案：全乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-      description: `您雖然在意乳房外觀，但不希望承擔因邊緣不乾淨而需要再次手術的可能性。全乳房切除可以確保邊緣乾淨，若搭配<b>乳房重建</b>，可同時滿足您對外觀的要求。${summaryHtml}`,
+      description: `${summaryHtml}您雖然在意乳房外觀，但不希望承擔因邊緣不乾淨而需要再次手術的可能性。全乳房切除可以確保邊緣乾淨，若搭配<b>乳房重建</b>，可同時滿足您對外觀的要求。`,
     };
   }
 
@@ -158,6 +158,6 @@ export const getBctSmResult = (finalAnswers) => {
   return {
     type: "SM",
     title: `建議方案：全乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-    description: `既然外觀不是您的首要考量，<b>全乳房切除</b>可以確保邊緣乾淨，且視病理情況有機會不需進行放射線治療，使治療流程相對簡化、安心。${summaryHtml}`,
+    description: `${summaryHtml}既然外觀不是您的首要考量，<b>全乳房切除</b>可以確保邊緣乾淨，且視病理情況有機會不需進行放射線治療，使治療流程相對簡化、安心。`,
   };
 };
