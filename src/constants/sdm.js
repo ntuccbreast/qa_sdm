@@ -71,8 +71,8 @@ export const topicDescriptions = {
 
 export const getBctSmResult = (finalAnswers) => {
   // Updated IDs: Q_BREAST_IMAGE, BCT_A2_MARGIN_LN, BCT_A5_RADIATION, Q_RECONSTRUCTION_FEEL
-  const isAppearanceImportant = finalAnswers["Q_BREAST_IMAGE"]?.includes("很重要");
-  const isWantRecon = finalAnswers["Q_RECONSTRUCTION_FEEL"]?.includes("有意願");
+  const isAppearanceImportant = finalAnswers["BCT_A1_OP"]?.includes("很重要");
+  const isWantRecon = finalAnswers["SM_B1_RECON_Q"]?.includes("有意願");
   const isAcceptingReop = finalAnswers["BCT_A2_MARGIN_LN"]?.includes("可以接受");
   // 排程或副作用任一有顧慮 → 視為對放療有顧慮
   const isRejectingRad =

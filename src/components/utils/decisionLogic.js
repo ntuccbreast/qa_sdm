@@ -7,9 +7,9 @@
  * 注意：排程與副作用是獨立的兩個軸，分開追蹤。
  */
 export const checkBctSmConflict = (latestAnswers) => {
-  // 保留乳房很重要 → 傾向 BCT
+  // 保留乳房很重要 → 傾向 BCT（答案記錄在 BCT_A1_OP 的外觀問題）
   const wantsBreastPreservation =
-    latestAnswers["Q_BREAST_IMAGE"]?.includes("很重要") ? 1 : 0;
+    latestAnswers["BCT_A1_OP"]?.includes("很重要") ? 1 : 0;
 
   // BCT 旅程中：能接受再次手術？
   const canAcceptReop =
@@ -44,13 +44,13 @@ export const checkBctSmConflict = (latestAnswers) => {
  */
 export const getBctSmFinalResult = (ultimateChoice, latestAnswers) => {
   const isWantRecon =
-    latestAnswers["Q_RECONSTRUCTION_FEEL"]?.includes("有意願");
+    latestAnswers["SM_B1_RECON_Q"]?.includes("有意願");
   const reconSuffix = isWantRecon ? "合併重建" : "";
 
   // ── 建立選擇摘要 ──
   const summaryItems = [];
 
-  const breastImportant = latestAnswers["Q_BREAST_IMAGE"];
+  const breastImportant = latestAnswers["BCT_A1_OP"];
   if (breastImportant) {
     summaryItems.push(
       breastImportant.includes("很重要")

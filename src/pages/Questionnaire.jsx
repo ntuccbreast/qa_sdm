@@ -734,7 +734,9 @@ const Questionnaire = () => {
                 const isDisabledVideoLock = isLockedByVideoLogical;
                 const isDisabledBusinessLock =
                   !isDev &&
-                  (opt.nextId === "Q_BREAST_IMAGE" && !isBothRoutesViewed);
+                  (opt.isFinal &&
+                    (currentId === "BCT_A7_FINISH" || currentId === "SM_B5_FINISH") &&
+                    !isBothRoutesViewed);
                 const isDisabled = isDisabledVideoLock || isDisabledBusinessLock;
 
                 return (
