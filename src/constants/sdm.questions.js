@@ -29,20 +29,13 @@ export const questionsBctSm = [
       接下來，我會帶您依序體驗兩條路，讓您親身感受每個階段的具體差異。
     `,
     question: `
-      <p><strong>在做決定前，先了解最重要的一件事：</strong></p>
+      <p><strong>在做決定前，先了解最重要的一件事：兩種手術的長期存活率相同。</p>
       <br/>
-      <p>🟰 <strong>兩種手術的長期存活率相同</strong><br/>這不是在選「哪個活得比較久」，而是在選「哪種治療過程與結果，是您更能接受的」。</p>
+      <p><strong>兩種手術的主要差異：</strong></p>
+      <p>① 乳房外觀的改變</p>
+      <p>② 放射線治療的必要性：部分乳房切除後幾乎<strong>必須</strong>放療；全乳房切除後<strong>不一定</strong>需要放療</p>
       <br/>
-      <p><strong>兩條路的主要差異：</strong></p>
-      <p>① 保留乳房（部分切除）vs 切除乳房（全切除）</p>
-      <p>② 部分切除後幾乎<strong>必須</strong>放療；全切除後<strong>不一定</strong>需要放療</p>
-      <p>③ 局部復發率略有差異，但遠端轉移率相同</p>
-      <br/>
-      <p>點擊下方圖示，可預覽兩條路的完整治療流程：</p>
-      <p>${hintBctSm("bctsm_bct_flow")} 部分乳房切除合併前哨淋巴結切片流程圖</p>
-      <p>${hintBctSm("bctsm_sm_flow")} 全乳房切除合併前哨淋巴結切片流程圖</p>
-      <br/>
-      <p>接下來，讓我們<strong>依序體驗兩條路</strong>，感受每個階段的具體差異。</p>
+      <p>接下來，讓我們<strong>依序體驗兩種手術的流程</strong>，感受每個階段的具體差異。</p>
     `,
     hints: {
       bctsm_bct_flow: {
@@ -64,7 +57,7 @@ export const questionsBctSm = [
   {
     id: "BCTSM_START",
     topic: "治療路徑模擬體驗",
-    question: "接下來將分別帶您體驗兩條路的治療流程。您想先體驗哪一個？",
+    question: "接下來將分別帶您體驗兩種手術的治療流程。您想先體驗哪一個？",
     options: [
       { label: "先體驗：部分乳房切除合併前哨淋巴結切片", nextId: "BCT_A1_OP" },
       { label: "先體驗：全乳房切除合併前哨淋巴結切片", nextId: "SM_B1_OP" },
@@ -151,7 +144,7 @@ export const questionsBctSm = [
       療程約 3～6 個月，<strong>先完成化療</strong> → 間隔 4 週 → 再進入放射線治療</p>
       <br/>
       <p>✅ <strong>情況二：不需要化療</strong><br/>
-      腫瘤特性不需化療，傷口癒合後<strong>直接開始放射線治療</strong></p>
+      腫瘤特性不需化療，傷口癒合後進入<strong>放射線治療評估</strong>（是否需要放療視診斷而定）</p>
     `,
     options: [],
     nextId: "BCT_A5_RADIATION",
@@ -162,26 +155,29 @@ export const questionsBctSm = [
     topic: "BCT｜放射線治療（幾乎必做）",
     videoUrl: "https://youtu.be/YBSbYRUlY-8?si=rjeJfVBJws2XIGdV",
     assistantScript: `
-      這一步是部分乳房切除後最重要的環節：放射線治療。
-      不論有沒有做化療，部分乳房切除後幾乎所有人都需要做放療，
+      這一步是部分乳房切除後的放射線治療。
+      如果診斷是侵襲性乳癌，部分乳房切除後幾乎所有人都需要做放療，
       目的是消滅可能殘留在乳房組織裡的癌細胞，降低局部復發的機會。
-      放療的療程大約是 4 到 8 週，每週一到五、每天去醫院，週六日休息，每次約 10 到 30 分鐘。
-      最常見的副作用是皮膚反應，像是皮膚泛紅或乾燥，類似曬傷的感覺，放療結束後幾週就會恢復。
-      少數人可能出現心肺相關副作用，特別是左側腫瘤，醫師會調整照射角度來降低風險。
+      如果診斷是乳房原位癌，放療是否需要，要看腫瘤大小、分級等因素，醫師會個別評估。
+      放療的療程大約是 4 到 8 週，每週一到五、每天去醫院，每次約 10 到 30 分鐘。
+      最常見的副作用是皮膚反應，類似曬傷的感覺，放療結束後幾週就會恢復。
     `,
     question: `
-      <p><strong>【放射線治療】——部分乳房切除後幾乎必做</strong></p>
+      <p><strong>【放射線治療】</strong></p>
       <br/>
-      <p>放療目的是<strong>消滅殘留在乳房組織中的癌細胞</strong>，不論有無化療，部分乳房切除後幾乎都需要。</p>
+      <p>
+        🔵 <strong>侵襲性乳癌</strong>：部分乳房切除後幾乎都需要放療，目的是消滅殘留癌細胞、降低局部復發率<br/>
+        🟡 <strong>乳房原位癌（DCIS）</strong>：是否需要放療依腫瘤大小、分級等因素由醫師個別評估，並非一律必做
+      </p>
       <br/>
-      <p><strong>療程安排：</strong></p>
+      <p><strong>療程安排（若需要）：</strong></p>
       <p>共 <strong>4～8 週</strong>｜每週一至五、<strong>每天</strong>到醫院｜週六日休息｜每次約 10～30 分鐘，不痛</p>
       <br/>
       <p><strong>常見副作用：</strong></p>
       <p>
-        🔴 <strong>皮膚反應</strong>：泛紅、乾燥，類似曬傷感；放療期間最明顯，結束後數週內恢復<br/>
-        💙 <strong>心肺影響</strong>：極少數情況，多見於左側腫瘤；醫師會調整角度降低風險<br/>
-        😴 <strong>疲倦感</strong>：放療期間容易感到疲勞，充分休息即可
+        🔴 <strong>皮膚反應</strong>：泛紅、乾燥，類似曬傷感；放療結束後數週內恢復<br/>
+        💙 <strong>心肺影響</strong>：極少數，多見於左側腫瘤；醫師會調整角度降低風險<br/>
+        😴 <strong>疲倦感</strong>：放療期間容易疲勞，充分休息即可
       </p>
       <br/>
       <p>若荷爾蒙受體陽性，放療結束後需服用<strong>抗荷爾蒙藥物</strong>，療程約 5～10 年。</p>
@@ -201,9 +197,7 @@ export const questionsBctSm = [
       <p>完成手術和放療後，進入定期回診追蹤。</p>
       <p>若對乳房外觀有困擾，此時可與醫師討論<strong>乳房重建</strong>選項。</p>
     `,
-    options: [
-      { label: "完成 BCT+SLNB 流程體驗", nextId: "BCT_A7_FINISH" },
-    ],
+    options: [{ label: "完成 BCT+SLNB 流程體驗", nextId: "BCT_A7_FINISH" }],
   },
 
   {
@@ -305,9 +299,7 @@ export const questionsBctSm = [
       <p>若荷爾蒙受體陽性，需服用<strong>抗荷爾蒙藥物</strong>，療程約 5～10 年。</p>
     `,
     hints: {},
-    options: [
-      { label: "治療完成，進入定期追蹤", nextId: "SM_B4_FOLLOWUP" },
-    ],
+    options: [{ label: "治療完成，進入定期追蹤", nextId: "SM_B4_FOLLOWUP" }],
   },
 
   {
@@ -319,9 +311,7 @@ export const questionsBctSm = [
       <p>完成主要治療後，進入定期回診追蹤。</p>
       <p>當初選擇<strong>延遲重建或不重建</strong>的患者，在治療全部結束後，可以重新與醫師評估是否進行乳房重建手術。重建可以在任何時間點討論，不需要現在決定。</p>
     `,
-    options: [
-      { label: "完成 SM+SLNB 流程體驗", nextId: "SM_B5_FINISH" },
-    ],
+    options: [{ label: "完成 SM+SLNB 流程體驗", nextId: "SM_B5_FINISH" }],
   },
 
   {
@@ -344,9 +334,13 @@ export const questionsBctSm = [
       <br/>
       <p>保留乳房對您的<strong>外觀、自我形象或日常生活</strong>有多重要？</p>
     `,
-    descriptionText: "沒有標準答案，每個人的優先順序不同，請依您真實的感受回答。",
+    descriptionText:
+      "沒有標準答案，每個人的優先順序不同，請依您真實的感受回答。",
     options: [
-      { label: "保留乳房對我來說很重要，這是我在意的事", nextId: "Q_RADIATION_FEEL" },
+      {
+        label: "保留乳房對我來說很重要，這是我在意的事",
+        nextId: "Q_RADIATION_FEEL",
+      },
       { label: "保留乳房對我來說不是最優先考量", nextId: "Q_RADIATION_FEEL" },
     ],
   },
@@ -361,8 +355,14 @@ export const questionsBctSm = [
       <p>想到每天去醫院做放療，連續 <strong>4～8 週</strong>，這樣的安排對您來說：</p>
     `,
     options: [
-      { label: "我可以接受，這對我生活的影響是可克服的", nextId: "Q_REOPERATION_FEEL" },
-      { label: "這對我的生活影響太大，讓我感到壓力", nextId: "Q_REOPERATION_FEEL" },
+      {
+        label: "我可以接受，這對我生活的影響是可克服的",
+        nextId: "Q_REOPERATION_FEEL",
+      },
+      {
+        label: "這對我的生活影響太大，讓我感到壓力",
+        nextId: "Q_REOPERATION_FEEL",
+      },
     ],
   },
   {
@@ -374,8 +374,14 @@ export const questionsBctSm = [
       <p>面對這個不確定性，您的感受是？</p>
     `,
     options: [
-      { label: "我可以接受，確認清楚比較重要", nextId: "Q_RECONSTRUCTION_FEEL" },
-      { label: "我不想承擔還要再開一次刀的可能", nextId: "Q_RECONSTRUCTION_FEEL" },
+      {
+        label: "我可以接受，確認清楚比較重要",
+        nextId: "Q_RECONSTRUCTION_FEEL",
+      },
+      {
+        label: "我不想承擔還要再開一次刀的可能",
+        nextId: "Q_RECONSTRUCTION_FEEL",
+      },
     ],
   },
   {
