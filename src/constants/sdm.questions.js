@@ -7,395 +7,407 @@
 import hintImages from "./sdm.assets";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BCT vs SM  ―  complete path: journey simulation + values questionnaire
+// BCT+SLNB vs SM+SLNB  ―  pathway journey + values questionnaire
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Reusable hint span (same helper as DCIS section below)
+const hintBctSm = (id) =>
+  `<span class="hint-trigger pulsing-hint hint-icon" data-hint-id="${id}">💡</span>`;
+
 export const questionsBctSm = [
-  // 1. 體驗入口
+  // ── 開場：全局概覽 ──
+  {
+    id: "BCTSM_INTRO",
+    topic: "兩條路的全貌",
+    assistantScript: `
+      您好，在做決定之前，讓我先告訴您一件最重要的事：
+      部分乳房切除合併前哨淋巴結切片，和全乳房切除合併前哨淋巴結切片，
+      兩者的長期存活率是相同的。
+      這個決定不是在選哪個活得比較久，而是在選哪種治療過程和結果是您更能接受的。
+      兩條路有三個主要差異：第一，是否保留乳房；第二，放射線治療的必要性；
+      第三，局部復發率略有不同，但遠端轉移率是相同的。
+      接下來，我會帶您依序體驗兩條路，讓您親身感受每個階段的具體差異。
+    `,
+    question: `
+      <p><strong>在做決定前，先了解最重要的一件事：</strong></p>
+      <br/>
+      <p>🟰 <strong>兩種手術的長期存活率相同</strong><br/>這不是在選「哪個活得比較久」，而是在選「哪種治療過程與結果，是您更能接受的」。</p>
+      <br/>
+      <p><strong>兩條路的主要差異：</strong></p>
+      <p>① 保留乳房（部分切除）vs 切除乳房（全切除）</p>
+      <p>② 部分切除後幾乎<strong>必須</strong>放療；全切除後<strong>不一定</strong>需要放療</p>
+      <p>③ 局部復發率略有差異，但遠端轉移率相同</p>
+      <br/>
+      <p>點擊下方圖示，可預覽兩條路的完整治療流程：</p>
+      <p>${hintBctSm("bctsm_bct_flow")} 部分乳房切除合併前哨淋巴結切片流程圖</p>
+      <p>${hintBctSm("bctsm_sm_flow")} 全乳房切除合併前哨淋巴結切片流程圖</p>
+      <br/>
+      <p>接下來，讓我們<strong>依序體驗兩條路</strong>，感受每個階段的具體差異。</p>
+    `,
+    hints: {
+      bctsm_bct_flow: {
+        type: "image",
+        src: hintImages["bct_slnb"],
+        alt: "部分乳房切除合併前哨淋巴結切片治療流程圖",
+      },
+      bctsm_sm_flow: {
+        type: "image",
+        src: hintImages["sm_slnb"],
+        alt: "全乳房切除合併前哨淋巴結切片治療流程圖",
+      },
+    },
+    options: [],
+    nextId: "BCTSM_START",
+  },
+
+  // ── 體驗入口 ──
   {
     id: "BCTSM_START",
     topic: "治療路徑模擬體驗",
-    question:
-      "在做決定前，讓我們分別模擬「部分乳房切除合併前哨淋巴結切片手術」與「全乳房切除合併前哨淋巴結切片手術」，您未來需要經歷的治療過程。這能幫助您更具體地感受兩者的差異。您想先體驗哪一個流程？",
+    question: "接下來將分別帶您體驗兩條路的治療流程。您想先體驗哪一個？",
     options: [
-      {
-        label: "體驗：部分乳房切除合併前哨淋巴結切片手術",
-        nextId: "BCT_A1_OP",
-      },
-      { label: "體驗：全乳房切除合併前哨淋巴結切片手術", nextId: "SM_B1_OP" },
+      { label: "先體驗：部分乳房切除合併前哨淋巴結切片", nextId: "BCT_A1_OP" },
+      { label: "先體驗：全乳房切除合併前哨淋巴結切片", nextId: "SM_B1_OP" },
     ],
   },
 
-  // --- 路線 A: BCT 旅程 ---
+  // ── 路線 A：BCT+SLNB 旅程 ──
   {
     id: "BCT_A1_OP",
-    topic: "BCT-第一步：手術內容",
-    question:
-      "<b>【部分乳房合併前哨淋巴結切片手術】</b><br/>此時，您也可以選擇是否同時進行「立即乳房重建手術」。<br/>您完成了手術，沒有發生合併症。醫護人員協助您預約 7~14 天後回診，評估傷口及檢視病理報告。",
-    options: [
-      {
-        label:
-          "先看第一種情況：病理報告顯示乳房安全邊緣足夠、淋巴結沒有轉移或輕微感染",
-        nextId: "BCT_A2_MARGINLN_CHECK",
+    topic: "BCT｜第一步：手術",
+    assistantScript: `
+      現在進入部分乳房切除合併前哨淋巴結切片手術的體驗。
+      手術中，醫師會切除腫瘤和周圍少量組織，保留大部分的乳房，同時進行前哨淋巴結切片。
+      切除的位置和範圍，可能造成乳房輕微凹陷或兩側不對稱，多數在可接受範圍內。
+      如果之後對外觀有困擾，也可以評估重建選項。
+    `,
+    question: `
+      <p><strong>【部分乳房切除合併前哨淋巴結切片手術】</strong></p>
+      <br/>
+      <p>${hintBctSm("bctsm_bct_flow")}手術中，醫師切除腫瘤及周圍少量組織，<strong>保留大部分乳房</strong>，同時進行前哨淋巴結切片。</p>
+      <br/>
+      <p><strong>手術後可能的外觀變化：</strong><br/>切除位置可能造成輕微凹陷或兩側不對稱，多數在可接受範圍內。若有外觀困擾，治療結束後可評估重建。</p>
+      <br/>
+      <p>手術順利完成，沒有發生合併症。醫護人員為您預約 <strong>7～14 天後</strong>回診，評估傷口並檢視病理報告。</p>
+    `,
+    hints: {
+      bctsm_bct_flow: {
+        type: "image",
+        src: hintImages["bct_slnb"],
+        alt: "部分乳房切除合併前哨淋巴結切片治療流程圖",
       },
+    },
+    options: [
+      { label: "先看第一種情況：邊緣足夠、淋巴結無轉移", nextId: "BCT_A2_MARGINLN_CHECK" },
     ],
   },
 
   {
     id: "BCT_A2_MARGINLN_CHECK",
-    topic: "BCT-第二步：邊緣及淋巴結評估 (情境一)",
-    question:
-      "<b>【情況一：不需再次手術】</b><br/>如果病理結果顯示乳房邊緣足夠，前哨淋巴結沒有轉移或輕微感染，則不需再動手術切除更多乳房組織或淋巴結。",
+    topic: "BCT｜病理報告：邊緣足夠（情況一）",
+    question: `
+      <p><strong>【情況一：不需再次手術】</strong></p>
+      <br/>
+      <p>病理報告顯示乳房安全邊緣<strong>足夠</strong>、前哨淋巴結<strong>無轉移</strong>或輕微感染，手術圓滿完成，不需再動手術。</p>
+    `,
     options: [
-      {
-        label:
-          "再看另一種情況：病理報告顯示乳房安全邊緣太近、淋巴結有轉移或感染",
-        nextId: "BCT_A2_2NDOP_YES",
-      },
+      { label: "再看另一種情況：邊緣太近或淋巴結感染多顆", nextId: "BCT_A2_2NDOP_YES" },
     ],
   },
 
   {
     id: "BCT_A2_2NDOP_YES",
-    topic: "BCT-第二步：邊緣及淋巴結評估 (情境二)",
-    question:
-      "<b>【情況二：需要再次手術】</b><br/>若病理結果顯示乳房邊緣離惡性細胞太近，或淋巴結感染較嚴重，為了清除殘餘癌細胞，醫師會建議進行第二次手術，若是邊緣距離不夠，則會選擇再次進行「乳房組織更大範圍的切除」，可選擇部分乳房切除或全乳房切除。針對腋下淋巴結感染嚴重，則會進行「腋下淋巴廓清手術」以確盡量清除身上殘餘癌細胞。",
+    topic: "BCT｜病理報告：需再次手術（情況二）",
+    question: `
+      <p><strong>【情況二：需要再次手術】</strong></p>
+      <br/>
+      <p>病理報告顯示安全邊緣<strong>太近</strong>，或淋巴結感染較嚴重：</p>
+      <p>
+        <strong>邊緣不足</strong>：需再次切除更多乳房組織（可選部分或全切除）<br/>
+        <strong>淋巴結感染多顆</strong>：需進行腋下淋巴廓清手術
+      </p>
+      <br/>
+      <p>再次手術後，傷口順利癒合。</p>
+    `,
     options: [
-      {
-        label: "再次手術的傷口也癒合了，接下來醫師會評估後續治療",
-        nextId: "BCT_A4_CHEMO_CHECK",
-      },
+      { label: "接下來，醫師評估後續治療方案", nextId: "BCT_A4_CHEMO_CHECK" },
     ],
   },
 
   {
     id: "BCT_A4_CHEMO_CHECK",
-    topic: "BCT-第四步：化學藥物治療評估",
-    question:
-      "<b>【醫師評估治療方案】</b><br/>完成手術後，醫師會根據腫瘤的大小、細胞特性及淋巴結狀態，評估您是否需要接受「化學藥物治療」。治療的順序會因為是否需要化療而有所不同。",
+    topic: "BCT｜化學治療評估",
+    question: `
+      <p><strong>【化學治療評估】</strong></p>
+      <br/>
+      <p>完成手術後，醫師根據腫瘤大小、細胞特性及淋巴結狀態，評估是否需要化療。</p>
+    `,
     options: [
-      { label: "先看第一種情況：需要化療", nextId: "BCT_A4_CHEMO_YES" },
+      { label: "先看情況一：需要化療", nextId: "BCT_A4_CHEMO_YES" },
     ],
   },
 
   {
     id: "BCT_A4_CHEMO_YES",
-    topic: "BCT-第四步：需要化學治療的情況",
+    topic: "BCT｜需要化學治療",
     videoUrl: "https://youtu.be/oxCrG5yD3t0?si=zJVfWei0wiG8ZfrR",
-    question:
-      "<b>【情況一：需要化療】</b><br/>如果醫師評估需接受化學藥物治療（療程約 3~6 個月），為了達到最佳效果，您必須<b>「先完成化療」</b>，化療結束間隔約 4 週讓身體修復後，才會進入放射線治療階段。",
+    question: `
+      <p><strong>【情況一：需要化療】</strong></p>
+      <br/>
+      <p>化療約 3～6 個月。<strong>必須先完成化療</strong>，間隔約 4 週讓身體修復後，才進入放射線治療。</p>
+    `,
     options: [
-      { label: "再看另一種情況：不需要化療", nextId: "BCT_A4_CHEMO_NO" },
+      { label: "再看情況二：不需要化療", nextId: "BCT_A4_CHEMO_NO" },
     ],
   },
 
   {
     id: "BCT_A4_CHEMO_NO",
-    topic: "BCT-第四步：不需要化學治療的情況",
-    question:
-      "<b>【情況二：不需要化療】</b><br/>如果醫師評估您的腫瘤性質不需要接受化療，在手術傷口癒合後，您就可以<b>「直接開始」</b>放射線治療。",
-    options: [{ label: "放射線治療 ± 荷爾蒙治療", nextId: "BCT_A5_RADIATION" }],
+    topic: "BCT｜不需要化學治療",
+    question: `
+      <p><strong>【情況二：不需要化療】</strong></p>
+      <br/>
+      <p>腫瘤性質不需化療，手術傷口癒合後<strong>直接開始放射線治療</strong>。</p>
+    `,
+    options: [
+      { label: "進入放射線治療", nextId: "BCT_A5_RADIATION" },
+    ],
   },
 
   {
     id: "BCT_A5_RADIATION",
-    topic: "BCT-第五步：放射線 ± 抗荷爾蒙治療",
+    topic: "BCT｜放射線治療（幾乎必做）",
     videoUrl: "https://youtu.be/YBSbYRUlY-8?si=rjeJfVBJws2XIGdV",
-    question:
-      "<b>【放射線治療】</b><br/>不論是否需要化療，部分乳房切除手術後幾乎都需要接受<b>放射線治療，</b>療程約 4~8 週。<br/><b>抗荷爾蒙藥物治療則視病理報告荷爾蒙受體結果而定：</b>療程約 5~10 年。",
-    options: [{ label: "放射線治療結束之後", nextId: "BCT_A6_FOLLOWUP" }],
+    assistantScript: `
+      這一步是部分乳房切除後最重要的環節：放射線治療。
+      不論有沒有做化療，部分乳房切除後幾乎所有人都需要做放療，
+      目的是消滅可能殘留在乳房組織裡的癌細胞，降低局部復發的機會。
+      放療的療程大約是 4 到 8 週，每週一到五、每天去醫院，週六日休息，每次約 10 到 30 分鐘。
+      最常見的副作用是皮膚反應，像是皮膚泛紅或乾燥，類似曬傷的感覺，放療結束後幾週就會恢復。
+      少數人可能出現心肺相關副作用，特別是左側腫瘤，醫師會調整照射角度來降低風險。
+    `,
+    question: `
+      <p><strong>【放射線治療】——部分乳房切除後幾乎必做</strong></p>
+      <br/>
+      <p>放療目的是<strong>消滅殘留在乳房組織中的癌細胞</strong>，不論有無化療，部分乳房切除後幾乎都需要。</p>
+      <br/>
+      <p><strong>療程安排：</strong></p>
+      <p>共 <strong>4～8 週</strong>｜每週一至五、<strong>每天</strong>到醫院｜週六日休息｜每次約 10～30 分鐘，不痛</p>
+      <br/>
+      <p><strong>常見副作用：</strong></p>
+      <p>
+        🔴 <strong>皮膚反應</strong>：泛紅、乾燥，類似曬傷感；放療期間最明顯，結束後數週內恢復<br/>
+        💙 <strong>心肺影響</strong>：極少數情況，多見於左側腫瘤；醫師會調整角度降低風險<br/>
+        😴 <strong>疲倦感</strong>：放療期間容易感到疲勞，充分休息即可
+      </p>
+      <br/>
+      <p>若荷爾蒙受體陽性，放療結束後需服用<strong>抗荷爾蒙藥物</strong>，療程約 5～10 年。</p>
+    `,
+    hints: {},
+    options: [
+      { label: "放射線治療完成，進入定期追蹤", nextId: "BCT_A6_FOLLOWUP" },
+    ],
   },
 
   {
     id: "BCT_A6_FOLLOWUP",
-    topic: "BCT-第六步：定期追蹤與重建評估",
-    question:
-      "<b>【定期追蹤與重建評估】</b><br/>完成主要治療後，您將進入定期回診追蹤階段。<b>如果您在第一步手術時沒有選擇「立即重建」</b>，而在治療結束後對乳房外觀有改變或不對稱的困擾，此時您可以與醫師討論是否進行「乳房重建手術」。",
+    topic: "BCT｜定期追蹤",
+    question: `
+      <p><strong>【定期追蹤】</strong></p>
+      <br/>
+      <p>完成手術和放療後，進入定期回診追蹤。</p>
+      <p>若對乳房外觀有困擾，此時可與醫師討論<strong>乳房重建</strong>選項。</p>
+    `,
     options: [
-      {
-        label: "完成部分乳房切除合併前哨淋巴結手術治療流程體驗",
-        nextId: "BCT_A7_FINISH",
-      },
+      { label: "完成 BCT+SLNB 流程體驗", nextId: "BCT_A7_FINISH" },
     ],
   },
 
   {
     id: "BCT_A7_FINISH",
-    topic: "BCT 旅程結束",
+    topic: "BCT 旅程完成",
     question:
-      "您已完整體驗了「部分乳房切除合併前哨淋巴結手術」的治療流程。您必須也體驗過「全乳房切除合併前哨淋巴結切片手術」流程後，才能開始價值觀評估。",
+      "您已完整體驗了「部分乳房切除合併前哨淋巴結手術」的治療流程。請繼續體驗「全乳房切除合併前哨淋巴結手術」後，再進行評估。",
     options: [
-      {
-        label: "體驗「全乳房切除合併前哨淋巴結手術」的治療流程",
-        nextId: "SM_B1_OP",
-      },
-      { label: "我已了解兩者差異，開始價值觀評估", nextId: "Q_APPEARANCE" },
+      { label: "體驗「全乳房切除合併前哨淋巴結手術」", nextId: "SM_B1_OP" },
+      { label: "我已了解兩者差異，開始評估", nextId: "Q_BREAST_IMAGE" },
     ],
   },
 
-  // --- 路線 B: SM 旅程 ---
+  // ── 路線 B：SM+SLNB 旅程 ──
   {
     id: "SM_B1_OP",
-    topic: "SM-第一步：手術內容",
-    question:
-      "<b>【全乳房切除合併前哨淋巴結切片手術】</b><br/>此時，您也可以選擇是否同時進行「立即乳房重建手術」。您完成了手術，沒有發生合併症，術後會有傷口引流管。醫護人員協助您預約 7~14 天後回診，評估是否可以拆線及拆除引流管，並檢視病理報告。",
-    options: [
-      {
-        label: "先看第一種情況：病理報告顯示前哨淋巴結感染輕微或無轉移",
-        nextId: "SM_B2_LN_NORMAL",
+    topic: "SM｜第一步：手術與重建決定",
+    assistantScript: `
+      現在進入全乳房切除合併前哨淋巴結切片手術的體驗。
+      全乳房切除顧名思義，是將整個乳房切除。
+      手術前，醫師會詢問您是否要同時進行立即乳房重建手術。
+      重建是自費項目，可選擇義乳植入或自體組織重建。
+      選擇立即重建的話，會在同一次手術中完成；
+      選擇延遲重建或不重建的話，傷口會以平整的方式縫合。
+      這個決定不需要現在馬上決定，可以跟醫師充分討論再做選擇。
+    `,
+    question: `
+      <p><strong>【全乳房切除合併前哨淋巴結切片手術】</strong></p>
+      <br/>
+      <p>${hintBctSm("bctsm_sm_flow")}手術中，醫師<strong>切除整個乳房</strong>，同時進行前哨淋巴結切片。</p>
+      <br/>
+      <p><strong>手術前需先思考：是否要立即重建？</strong></p>
+      <p>
+        ✦ <strong>立即重建</strong>（同次手術完成）：可選義乳植入或自體組織，需<strong>自費</strong><br/>
+        ✦ <strong>延遲重建</strong>：等治療全部結束後再評估，保留彈性<br/>
+        ✦ <strong>不重建</strong>：以平整方式縫合，不需額外手術
+      </p>
+      <br/>
+      <p>手術順利完成，術後有傷口引流管。約 <strong>7～14 天</strong>後回診，評估傷口並檢視病理報告。</p>
+    `,
+    hints: {
+      bctsm_sm_flow: {
+        type: "image",
+        src: hintImages["sm_slnb"],
+        alt: "全乳房切除合併前哨淋巴結切片治療流程圖",
       },
+    },
+    options: [
+      { label: "先看第一種情況：淋巴結無轉移或輕微", nextId: "SM_B2_LN_NORMAL" },
     ],
   },
 
   {
     id: "SM_B2_LN_NORMAL",
-    topic: "SM-第二步：淋巴結評估 (情境一)",
-    question:
-      "<b>【情況一：不需進一步淋巴廓清】</b><br/>如果病理結果顯示前哨淋巴結感染輕微或沒有轉移，就不需再動手術切除更多淋巴結。",
+    topic: "SM｜淋巴結評估：無需廓清（情況一）",
+    question: `
+      <p><strong>【情況一：不需進一步淋巴廓清】</strong></p>
+      <br/>
+      <p>前哨淋巴結<strong>無轉移或輕微感染</strong>，不需再動手術清除更多淋巴結。</p>
+    `,
     options: [
-      {
-        label: "看另一種情況：病理報告顯示淋巴結感染顆數多",
-        nextId: "SM_B2_LN_ALND",
-      },
+      { label: "再看另一種情況：淋巴結感染顆數多", nextId: "SM_B2_LN_ALND" },
     ],
   },
 
   {
     id: "SM_B2_LN_ALND",
-    topic: "SM-第二步：淋巴結評估 (情境二)",
-    question:
-      "<b>【情況二：需要進一步淋巴廓清】</b><br/>如果淋巴結感染狀況較嚴重，需進行「腋下淋巴廓清手術」以確保徹底清除殘餘的癌細胞。",
+    topic: "SM｜淋巴結評估：需要廓清（情況二）",
+    question: `
+      <p><strong>【情況二：需要腋下淋巴廓清】</strong></p>
+      <br/>
+      <p>淋巴結感染較嚴重，需進行<strong>腋下淋巴廓清手術</strong>，確保徹底清除殘餘癌細胞。廓清手術後傷口順利癒合。</p>
+    `,
     options: [
-      {
-        label: "淋巴廓清手術的傷口也癒合了，接下來醫師會評估後續治療",
-        nextId: "SM_B3_TREATMENT_MATRIX",
-      },
+      { label: "醫師評估後續輔助治療", nextId: "SM_B3_TREATMENT" },
     ],
   },
 
   {
-    id: "SM_B3_TREATMENT_MATRIX",
-    topic: "SM-第三步：後續治療的 4 種可能",
-    question:
-      "【手術後的輔助治療】<br/>為了讓您完整了解全乳房切除合併前哨淋巴結切片手術後，接下來可能面臨的治療，請依序點選以下不同種情況進行體驗。全部看完後，系統將會開啟最後的追蹤階段。",
+    id: "SM_B3_TREATMENT",
+    topic: "SM｜後續輔助治療——與 BCT 最大的差異",
+    assistantScript: `
+      這裡是全乳房切除和部分乳房切除最重要的差別：放射線治療。
+      部分乳房切除後，幾乎所有人都必須做放療。
+      但全乳房切除後，大部分情況下不需要放療。
+      什麼時候全乳房切除後還是需要放療呢？
+      主要是當腫瘤較大，直徑超過 5 公分，或是轉移的淋巴結顆數較多，4 顆以上。
+      在這些情況下，醫師可能會建議加做放療，進一步降低局部復發率。
+      化療的評估方式兩條路是相同的，都是根據腫瘤特性來決定。
+    `,
+    question: `
+      <p><strong>【後續輔助治療】——與部分乳房切除最關鍵的差異</strong></p>
+      <br/>
+      <p>🔵 <strong>化學治療</strong>（若需要）：評估方式與部分乳房切除相同，視腫瘤特性決定，療程約 3～6 個月</p>
+      <br/>
+      <p>🟡 <strong>放射線治療——這裡是兩條路最大的不同：</strong></p>
+      <p>
+        ✅ 大部分全乳房切除患者<strong>不需要</strong>放療<br/>
+        ⚠️ 若腫瘤較大（&gt;5cm）或淋巴結轉移顆數多（≥4 顆），醫師<strong>可能建議</strong>加做放療以降低局部復發率
+      </p>
+      <br/>
+      <p>若荷爾蒙受體陽性，需服用<strong>抗荷爾蒙藥物</strong>，療程約 5～10 年。</p>
+    `,
+    hints: {},
     options: [
-      { label: "情況一：要化療 + 要放療", nextId: "SM_CASE_1" },
-      { label: "情況二：要化療 + 不用放療", nextId: "SM_CASE_2" },
-      { label: "情況三：不用化療 + 要放療", nextId: "SM_CASE_3" },
-      { label: "情況四：不用化療 + 不用放療", nextId: "SM_CASE_4" },
-      {
-        label: "我已看完四種不同情境，接下來呢？",
-        nextId: "SM_B6_FINISH",
-        isSecret: true,
-      },
+      { label: "治療完成，進入定期追蹤", nextId: "SM_B4_FOLLOWUP" },
     ],
   },
 
   {
-    id: "SM_CASE_1",
-    topic: "情境 1：(化療 + 放療)的化療",
-    videoUrl: "https://youtu.be/oxCrG5yD3t0",
-    question:
-      "情況❶：要化療 + 要放療<br/>治療路徑：手術 ⮕ 【化療】 ⮕ 放療 ⮕ 追蹤<br/><br/>您必須先完成 3~6 個月的化療，待身體修復約4週後，再接續6~8週的放療。",
+    id: "SM_B4_FOLLOWUP",
+    topic: "SM｜定期追蹤與重建再評估",
+    question: `
+      <p><strong>【定期追蹤與重建再評估】</strong></p>
+      <br/>
+      <p>完成主要治療後，進入定期回診追蹤。</p>
+      <p>當初選擇<strong>延遲重建或不重建</strong>的患者，在治療全部結束後，可以重新與醫師評估是否進行乳房重建手術。重建可以在任何時間點討論，不需要現在決定。</p>
+    `,
     options: [
-      { label: "化學藥物治療結束，也休息約4週了", nextId: "SM_CASE_1_RAD" },
-    ],
-  },
-  {
-    id: "SM_CASE_1_RAD",
-    topic: "情境 1-2：(化療 + 放療)的放療",
-    videoUrl: "https://youtu.be/7MiWDg5sa8Y?si=pqljIg5sGqQ-LI26",
-    question:
-      "情況❶：要化療 + 要放療<br/>治療路徑：手術 ⮕ 化療 ⮕【放療】⮕ 追蹤<br/><br/>在化療結束並休息約4週後，接著進行放射線治療(療程約 6~8 週)。<br/>全乳房切除後若腫瘤較大或有淋巴轉移風險，放療能進一步降低局部復發率。",
-    options: [
-      {
-        label: "放射線治療結束",
-        nextId: "SM_CASE_1_FOLLOWUP",
-      },
-    ],
-  },
-  {
-    id: "SM_CASE_1_FOLLOWUP",
-    topic: "情境 1-2：(化療 + 放療)的追蹤",
-    question:
-      "情況❶：要化療 + 要放療<br/>治療路徑：手術 ⮕ 化療 ⮕ 放療 ⮕【追蹤】<br/><br/>抗荷爾蒙藥物治療：視病理報告荷爾蒙受體結果而定，療程約 5~10 年。<br/>完成主要治療後，您將進入定期回診追蹤階段。<b>如果您在第一步手術時沒有選擇「立即重建」</b>，而在治療結束後對乳房外觀有改變或不對稱的困擾，此時您可以與醫師討論是否進行「乳房重建手術」。",
-    options: [
-      {
-        label: "已了解情況一，回選單看其他情境",
-        nextId: "SM_B3_TREATMENT_MATRIX",
-      },
+      { label: "完成 SM+SLNB 流程體驗", nextId: "SM_B5_FINISH" },
     ],
   },
 
   {
-    id: "SM_CASE_2",
-    topic: "情境 2：(要化療 + 不用放療)的化療",
-    videoUrl: "https://youtu.be/oxCrG5yD3t0",
+    id: "SM_B5_FINISH",
+    topic: "SM 旅程完成",
     question:
-      "情況➋：要化療 + 不用放療<br/>治療路徑：手術 ⮕【化療】⮕ 追蹤<br/><br/>若腫瘤較小但特性需化療，則完成 3~6 個月化療後，不需放療，直接進入追蹤。",
+      "您已完整體驗了「全乳房切除合併前哨淋巴結手術」的治療流程。請繼續體驗「部分乳房切除合併前哨淋巴結手術」後，再進行評估。",
     options: [
-      {
-        label: "化學藥物治療結束",
-        nextId: "SM_CASE_2_FOLLOWUP",
-      },
-    ],
-  },
-  {
-    id: "SM_CASE_2_FOLLOWUP",
-    topic: "情境 2：(要化療 + 不用放療)的追蹤",
-    question:
-      "情況➋：要化療 + 不用放療<br/>治療路徑：手術 ⮕ 化療 ⮕【追蹤】<br/><br/>抗荷爾蒙藥物治療：視病理報告荷爾蒙受體結果而定，療程約 5~10 年。<br/>完成主要治療後，您將進入定期回診追蹤階段。<b>如果您在第一步手術時沒有選擇「立即重建」</b>，而在治療結束後對乳房外觀有改變或不對稱的困擾，此時您可以與醫師討論是否進行「乳房重建手術」。",
-    options: [
-      {
-        label: "已了解情況二，回選單看其他情境",
-        nextId: "SM_B3_TREATMENT_MATRIX",
-      },
+      { label: "體驗「部分乳房切除合併前哨淋巴結手術」", nextId: "BCT_A1_OP" },
+      { label: "我已了解兩者差異，開始評估", nextId: "Q_BREAST_IMAGE" },
     ],
   },
 
+  // ── 第二階段：價值觀釐清 ──
   {
-    id: "SM_CASE_3",
-    topic: "情境 3：(不用化療 + 要放療)的放療",
-    videoUrl: "https://youtu.be/7MiWDg5sa8Y",
-    question:
-      "情況➌：不用化療 + 要放療<br/>治療路徑：手術 ⮕【放療】⮕ 追蹤<br/><br/>全乳房切除後若腫瘤較大或有淋巴轉移風險，放療能進一步降低局部復發率。",
+    id: "Q_BREAST_IMAGE",
+    topic: "保留乳房對您有多重要？",
+    question: `
+      <p>體驗過兩條路之後，回想一下：</p>
+      <br/>
+      <p>保留乳房對您的<strong>外觀、自我形象或日常生活</strong>有多重要？</p>
+    `,
+    descriptionText: "沒有標準答案，每個人的優先順序不同，請依您真實的感受回答。",
     options: [
-      {
-        label: "放射線治療結束",
-        nextId: "SM_CASE_3_FOLLOWUP",
-      },
+      { label: "保留乳房對我來說很重要，這是我在意的事", nextId: "Q_RADIATION_FEEL" },
+      { label: "保留乳房對我來說不是最優先考量", nextId: "Q_RADIATION_FEEL" },
     ],
   },
   {
-    id: "SM_CASE_3_FOLLOWUP",
-    topic: "情境 3-2：(不用化療 + 要放療)的追蹤",
-    question:
-      "情況➌：不用化療 + 要放療<br/>治療路徑：手術 ⮕ 放療 ⮕【追蹤】<br/><br/>抗荷爾蒙藥物治療：視病理報告荷爾蒙受體結果而定，療程約 5~10 年。<br/>完成主要治療後，您將進入定期回診追蹤階段。<b>如果您在第一步手術時沒有選擇「立即重建」</b>，而在治療結束後對乳房外觀有改變或不對稱的困擾，此時您可以與醫師討論是否進行「乳房重建手術」。",
-    options: [
-      {
-        label: "已了解情況三，回選單看其他情境",
-        nextId: "SM_B3_TREATMENT_MATRIX",
-      },
-    ],
-  },
-
-  {
-    id: "SM_CASE_4",
-    topic: "情境 4：不用化療 + 不用放療",
-    question:
-      "情況➍：不用化療 + 不用放療<br/>治療路徑：手術 ⮕【追蹤】<br/><br/>手術傷口癒合後，不需化療及放療，直接進入長期藥物控制與追蹤。<br/>抗荷爾蒙藥物治療：視病理報告荷爾蒙受體結果而定，療程約 5~10 年。<br/>完成主要治療後，您將進入定期回診追蹤階段。<b>如果您在第一步手術時沒有選擇「立即重建」</b>，而在治療結束後對乳房外觀有改變或不對稱的困擾，此時您可以與醫師討論是否進行「乳房重建手術」。",
-    options: [
-      {
-        label: "已了解情況四，回選單看其他情境",
-        nextId: "SM_B3_TREATMENT_MATRIX",
-      },
-    ],
-  },
-
-  {
-    id: "SM_B5_FOLLOWUP",
-    topic: "SM-第五步：定期追蹤與重建評估",
-    question:
-      "【定期追蹤與重建評估】<br/>抗荷爾蒙藥物治療：視病理報告荷爾蒙受體結果而定，療程約 5~10 年。<br/>完成主要治療後，您將進入定期回診追蹤階段。如果您在第一步手術時沒有選擇「立即重建」，而在治療結束後對乳房外觀有改變或不對稱的困擾，此時您可以與醫師討論是否進行「乳房重建手術」。",
-    options: [
-      {
-        label: "體驗「部分乳房切除合併前哨淋巴結手術」的治療流程",
-        nextId: "BCT_A1_OP",
-      },
-      {
-        label: "完成全乳房切除合併前哨淋巴結切片手術治療流程體驗",
-        nextId: "SM_B6_FINISH",
-      },
-    ],
-  },
-  {
-    id: "SM_B6_FINISH",
-    topic: "SM 旅程結束",
-    question:
-      "您已完整體驗了「全乳房切除合併前哨淋巴結手術」的治療流程。您必須也體驗過「部分乳房切除合併前哨淋巴結切片手術」流程後，才能開始價值觀評估。",
-    options: [
-      {
-        label: "體驗「部分乳房切除合併前哨淋巴結手術」的治療流程",
-        nextId: "BCT_A1_OP",
-      },
-      { label: "我已了解兩者差異，開始價值觀評估", nextId: "Q_APPEARANCE" },
-    ],
-  },
-
-  // --- 第二階段：價值觀釐清問卷 ---
-  {
-    id: "Q_APPEARANCE",
-    topic: "對乳房外觀在意程度",
-    question:
-      "對某些人來說，乳房外觀對於自我形象或日常穿著很重要；對某些人來說，健康與安心更優先。請問您的想法是：",
-    options: [
-      { label: "我覺得保留乳房外觀很重要", nextId: "Q_RECONSTRUCTION" },
-      { label: "我覺得保留乳房外觀對我來說不重要", nextId: "Q_RECONSTRUCTION" },
-    ],
-  },
-  {
-    id: "Q_RECONSTRUCTION",
-    topic: "對乳房重建的意願",
-    videoUrl: "https://youtu.be/Fos0tafgQME?si=HkIAN0l_J18NeN8W",
-    question:
-      "不論部分或全切除，都可以考慮自費重建。有些人希望恢復外觀，有些人覺得沒關係。您的想法是：",
-    options: [
-      { label: "我有意願接受乳房重建(了解需自費)", nextId: "Q_REOPERATION" },
-      { label: "我不考慮接受乳房重建", nextId: "Q_REOPERATION" },
-    ],
-  },
-  {
-    id: "Q_REOPERATION",
-    topic: "接受再次手術可能性",
-    question:
-      "部分乳房切除術後可能會因為邊緣不夠，還需要再開一次刀，有些人可以接受，有些人會覺得壓力大。您的想法是：",
-    options: [
-      { label: "我可以接受需要再次手術的可能性", nextId: "Q_RADIATION_TIME" },
-      { label: "我不想承擔還需要再次手術的可能性", nextId: "Q_RADIATION_TIME" },
-    ],
-  },
-  {
-    id: "Q_RADIATION_TIME",
-    topic: "對放射線治療療程接受程度",
+    id: "Q_RADIATION_FEEL",
+    topic: "對放射線治療的感受",
     videoUrl: "https://www.youtube.com/watch?v=Vh217ZogKwQ",
     linkText: " [影片：乳癌放射線治療要做多久？多久一次？]",
-    question:
-      "放療需要連續 6-8 週每天來醫院(週休二日)，這可能會影響工作或生活。您的想法是：",
+    question: `
+      <p>回想剛才體驗的部分乳房切除旅程——</p>
+      <br/>
+      <p>想到每天去醫院做放療，連續 <strong>4～8 週</strong>，這樣的安排對您來說：</p>
+    `,
     options: [
-      {
-        label: "我可以接受每天來醫院的排程",
-        nextId: "Q_RADIATION_SIDE_EFFECT_SKIN",
-      },
-      {
-        label: "我不想每天到醫院接受放療",
-        nextId: "Q_RADIATION_SIDE_EFFECT_SKIN",
-      },
+      { label: "我可以接受，這對我生活的影響是可克服的", nextId: "Q_REOPERATION_FEEL" },
+      { label: "這對我的生活影響太大，讓我感到壓力", nextId: "Q_REOPERATION_FEEL" },
     ],
   },
   {
-    id: "Q_RADIATION_SIDE_EFFECT_SKIN",
-    topic: "對放射線治療皮膚相關副作用接受程度",
-    videoUrl: "https://youtu.be/qjMrVpc_mO4?si=OTrj8oxa3UlT50tJ",
-    question: "放療可能導致皮膚紅腫、乾燥或疲倦，通常是暫時的。您的想法是：",
+    id: "Q_REOPERATION_FEEL",
+    topic: "對再次手術可能性的感受",
+    question: `
+      <p>部分乳房切除後，若安全邊緣不足，<strong>可能需要再次手術</strong>。</p>
+      <br/>
+      <p>面對這個不確定性，您的感受是？</p>
+    `,
     options: [
-      {
-        label: "我可以接受可能出現的皮膚副作用",
-        nextId: "Q_RADIATION_SIDE_EFFECT_HEARTLUNG",
-      },
-      {
-        label: "我不想接受放療可能產生的皮膚副作用",
-        nextId: "Q_RADIATION_SIDE_EFFECT_HEARTLUNG",
-      },
+      { label: "我可以接受，確認清楚比較重要", nextId: "Q_RECONSTRUCTION_FEEL" },
+      { label: "我不想承擔還要再開一次刀的可能", nextId: "Q_RECONSTRUCTION_FEEL" },
     ],
   },
   {
-    id: "Q_RADIATION_SIDE_EFFECT_HEARTLUNG",
-    topic: "對放射線治療心肺相關副作用接受程度",
-    videoUrl: "https://youtu.be/jETmg4JI2Pc?si=tskAoZIFBFtpADFp",
-    question: "放療可能導致心肺相關副作用，通常是暫時的。您的想法是：",
+    id: "Q_RECONSTRUCTION_FEEL",
+    topic: "對乳房重建的想法",
+    videoUrl: "https://youtu.be/Fos0tafgQME?si=HkIAN0l_J18NeN8W",
+    question: `
+      <p>如果選擇全乳房切除，關於<strong>乳房重建</strong>（需自費），您的想法是？</p>
+    `,
     options: [
-      { label: "我可以接受可能出現的心肺副作用", isFinal: true },
-      { label: "我不想接受放療可能產生的心肺副作用", isFinal: true },
+      { label: "我有意願考慮重建，了解需自費", isFinal: true },
+      { label: "我不考慮重建，切除就好", isFinal: true },
     ],
   },
 ];
