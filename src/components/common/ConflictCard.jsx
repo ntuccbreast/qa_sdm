@@ -16,20 +16,20 @@ const ConflictCard = ({
       conflictData?.reopConflict && !conflictData?.radConflict
         ? "乳房不要全部被切掉，外觀不要變太多比較重要"
         : !conflictData?.reopConflict && conflictData?.radConflict
-        ? "乳房不要全部被切掉，外觀不要變太多比較重要"
-        : "乳房不要全部被切掉，外觀不要變太多比較重要",
+          ? "乳房不要全部被切掉，外觀不要變太多比較重要"
+          : "乳房不要全部被切掉，外觀不要變太多比較重要",
 
     SM:
       conflictData?.reopConflict && !conflictData?.radConflict
         ? "不用再開第二次刀比較重要"
         : !conflictData?.reopConflict && conflictData?.radConflict
-        ? "不用接受放射線治療比較重要"
-        : "不用再開第二次刀也不用接受放射線治療比較重要",
+          ? "不用接受放射線治療比較重要"
+          : "不用再開第二次刀也不用接受放射線治療比較重要",
   };
 
   const handleFinish = () => {
     if (conflictChoice) {
-      onFinish(labels[conflictChoice]);
+      onFinish(conflictChoice);
     }
   };
 
@@ -62,44 +62,43 @@ const ConflictCard = ({
         style={{
           margin: "20px 0",
           lineHeight: "1.8",
-          textAlign: "left", // 👈 配合置左需求
+          textAlign: "left",
           fontSize: "1.05rem",
           color: "#444",
         }}
       >
         {conflictData?.reopConflict && !conflictData?.radConflict && (
           <p>
-            您希望
-            <strong>選擇部分乳房切除手術就是為了盡量維持原本乳房外觀</strong>
-            ，但又不希望因為邊緣不乾淨<strong>有再次手術的可能</strong>。<br />
-            但在醫療現實中，選擇部分乳房切除手術，就必須承擔有可能因為邊緣不乾淨而需要再次手術的風險。
+            您希望<strong>盡量保留原本的乳房外觀</strong>
+            ，但又不想承擔部分乳房切除後，可能有約兩成機率
+            <strong>因為邊緣不足需要再開一次刀</strong>的風險。
             <br />
-            <strong>提醒您：如果很在意外觀改變都可以考慮搭配重建喔！</strong>
+            這兩個願望在現實中有所衝突，因為部分乳房切除就必須承擔安全邊緣不確定性。
+            <br />
             <br />
             您最在意的是：
           </p>
         )}
         {!conflictData?.reopConflict && conflictData?.radConflict && (
           <p>
-            您希望
-            <strong>選擇部分乳房切除手術就是為了盡量維持原本乳房外觀</strong>
-            ，但又不希望<strong>接受放射線治療</strong>。<br />
-            但在醫療現實中，選擇部分乳房切除手術，就必須搭配放療。
+            您希望<strong>盡量保留原本的乳房外觀</strong>
+            ，但又不想接受部分乳房切除後幾乎必須進行的
+            <strong>放射線治療</strong>。<br />
+            這兩個願望在現實中有所衝突，因為部分乳房切除，如果是乳癌的情況下，就必須搭配放療。
             <br />
-            <strong>提醒您：如果很在意外觀改變都可以考慮搭配重建喔！</strong>
             <br />
             您最在意的是：
           </p>
         )}
         {conflictData?.reopConflict && conflictData?.radConflict && (
           <p>
-            您希望
-            <strong>選擇部分乳房切除手術就是為了盡量維持原本乳房外觀</strong>
-            ，但又不希望因為邊緣不乾淨
-            <strong>有再次手術的可能，也不想接受放療</strong>。<br />
-            但在醫療現實中，選擇部分乳房切除手術，就必須承擔有可能因為邊緣不乾淨而需要再次手術的風險，也必須搭配放療。
+            您希望<strong>盡量保留原本的乳房外觀</strong>
+            ，但又不想承擔承擔部分乳房切除後，可能有約兩成機率
+            <strong>因為邊緣不足需要再開一次刀</strong>
+            的風險，也不想接受如果是乳癌的情況下，就必須搭配
+            <strong>放射線治療</strong>。<br />
+            這些願望在現實中有所衝突，因為部分乳房切除就必須同時承擔這些事會發生的可能。
             <br />
-            <strong>提醒您：如果很在意外觀改變都可以考慮搭配重建喔！</strong>
             <br />
             您最在意的是：
           </p>

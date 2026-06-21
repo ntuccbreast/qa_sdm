@@ -31,6 +31,15 @@ input[type="date"] {
   -webkit-appearance: none !important;
 }
 
+/* ── Question content emphasis utilities ──
+   Use these class names directly inside question HTML in sdm.questions.js
+   e.g. <p class="em-red">...</p>  or  <span class="em-bold">...</span>
+   ──────────────────────────────────────────────────────────────────────── */
+.em-bold   { font-weight: 700; }
+.em-red    { color: #d32f2f; font-weight: 600; }
+.em-note   { color: #888; font-size: 0.9em; font-style: italic; }
+.em-label  { font-weight: 700; color: #b9375d; }
+
 /* 💡 Hint trigger icon — shared style for inline hint bubbles in question HTML */
 .hint-icon {
   cursor: pointer;

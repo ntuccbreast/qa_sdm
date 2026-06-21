@@ -7,7 +7,7 @@ import styles from "../../Questionnaire.module.css";
 const PREFERENCE_QUESTIONS = [
   {
     id: "SM_B1_OP",
-    label: "外觀與重建考量",
+    label: "乳房外觀與重建考量",
     options: [
       "能接受外觀平整，不考慮重建",
       "能接受外觀改變，有意願考慮重建（需自費）",
@@ -15,26 +15,20 @@ const PREFERENCE_QUESTIONS = [
     ],
   },
   {
-    id: "BCT_A2_MARGIN_LN",
-    label: "再次手術風險（部分切除特有）",
-    options: [
-      "可以接受——確認切除乾淨比較重要",
-      "我不想承擔這個再開一次刀的可能",
-    ],
+    id: "BCT_A2_MARGIN",
+    label: "因為安全邊緣不夠需要再次手術的可能（部分乳房切除有兩成的人會遇到）",
+    options: ["可以接受，有切除乾淨比較重要", "不想承擔還要再開一次刀的可能"],
   },
   {
     id: "BCT_A5_RADIATION",
     label: "放療排程（每天 4～8 週）",
-    options: [
-      "可以接受——這對我生活作息的影響是可克服的",
-      "這樣每天往返的安排讓我感到壓力，是我的顧慮之一",
-    ],
+    options: ["我可以接受並配合這樣的安排", "每天往返醫院的安排讓我感到壓力"],
   },
   {
     id: "BCT_A5_SIDEEFFECT",
     label: "放療副作用",
     options: [
-      "可以接受——這些副作用在我可承受的範圍內",
+      "可以接受，這些副作用在我可承受的範圍內",
       "這些副作用讓我感到顧慮，不確定能不能承受",
     ],
   },
@@ -79,7 +73,8 @@ const ReviewCard = ({
         <div
           key={q.id}
           style={{
-            marginBottom: index < PREFERENCE_QUESTIONS.length - 1 ? "24px" : "0",
+            marginBottom:
+              index < PREFERENCE_QUESTIONS.length - 1 ? "24px" : "0",
             paddingBottom:
               index < PREFERENCE_QUESTIONS.length - 1 ? "20px" : "0",
             borderBottom:
@@ -111,7 +106,7 @@ const ReviewCard = ({
         </div>
       ))}
 
-      <div className={styles.actionGroup} style={{ marginTop: "28px" }}>
+      <div className={styles.actionGroup}>
         <Button variant="outline" onClick={onBack} fullWidth>
           返回修改旅程
         </Button>

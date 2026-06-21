@@ -6,7 +6,14 @@
       "mcp__plugin_chrome-devtools-mcp_chrome-devtools__list_pages",
       "mcp__plugin_chrome-devtools-mcp_chrome-devtools__navigate_page",
       "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_screenshot",
-      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__list_console_messages"
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__list_console_messages",
+      "Skill(run)",
+      "Bash(echo \"PID: $!\")",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__new_page",
+      "Bash(lsof -ti:3000)",
+      "Bash(xargs kill -9)",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__select_page",
+      "Skill(commit-commands:commit-push-pr)"
     ]
   }
 }

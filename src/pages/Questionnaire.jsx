@@ -52,8 +52,8 @@ const Questionnaire = () => {
   const [isConflictMode, setIsConflictMode] = useState(false);
   const [conflictData, setConflictData] = useState(null);
   const [conflictChoice, setConflictChoice] = useState(null);
-  const [isReviewMode, setIsReviewMode] = useState(false);
-  const [reviewAnswers, setReviewAnswers] = useState({});
+  const [isReviewMode, setIsReviewMode] = useState(() => snapshot?.isReviewMode ?? false);
+  const [reviewAnswers, setReviewAnswers] = useState(() => snapshot?.reviewAnswers ?? {});
 
   // 🎯 新增：控制問卷頁面「下滑看更多」提示的狀態與 Ref
   const [showScrollHint, setShowScrollHint] = useState(false);
@@ -407,6 +407,9 @@ const Questionnaire = () => {
           viewedPages: [...viewedPages],
           viewedCases: [...viewedCases],
           completedRoutes: [...completedRoutes],
+          // Only bctsm has a ReviewCard — other topics just restore to last question
+          isReviewMode: topicKey === "bctsm",
+          reviewAnswers: topicKey === "bctsm" ? finalAnswers : {},
         },
       },
     });
@@ -666,7 +669,7 @@ const Questionnaire = () => {
             conflictData={conflictData}
             conflictChoice={conflictChoice}
             setConflictChoice={setConflictChoice}
-            onBack={() => setIsConflictMode(false)}
+            onBack={() => { setIsConflictMode(false); setIsReviewMode(true); }}
             onFinish={(txt) => finishAssessment(allAnswers.answers, txt)}
             isEmbedded={true}
           />
@@ -786,12 +789,19 @@ const Questionnaire = () => {
                     !isBothRoutesViewed);
                 const isDisabled = isDisabledVideoLock || isDisabledBusinessLock;
 
+                const otherRoute =
+                  currentId === "BCT_A7_FINISH" ? "全乳房切除" : "部分乳房切除";
+                const lockTooltip = isDisabledBusinessLock
+                  ? `請先完成「${otherRoute}合併前哨淋巴結手術」的路線體驗，再看最終建議`
+                  : undefined;
+
                 return (
                   <OptionButton
                     key={`${currentId}-${index}`}
                     label={`${isFinished ? "✓ " : ""}${opt.label}`}
                     isSelected={answers[currentId] === opt.label}
                     isDisabled={isDisabled}
+                    tooltip={lockTooltip}
                     onClick={() => {
                       if (isDisabled) return;
                       setAnswers({ ...answers, [currentId]: opt.label });

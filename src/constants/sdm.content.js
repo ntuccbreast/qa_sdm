@@ -16,6 +16,7 @@ export const introText = `
 
 export const introAudioDCIS = `
 您好，我是乳房外科小幫手，今天要陪您一起做一個重要的決定。
+當您被診斷為乳房原位癌後，可能正在思考：「我應該選擇部分乳房切除，還是同一次手術一起進行部分乳房切除合併前哨淋巴結切片？」
 這裡沒有正確答案，我會一步一步地引導您，幫您釐清您自己在意的事情。
 說明的過程中，點擊閃爍燈泡，可以看更多資訊！點擊Youtube圖案，可以看多更多補充影片說明！
 評估的過程中，如果有問題，可以在我說明完後點擊我的頭像，我會隨時回答您喔！
@@ -25,18 +26,24 @@ export const introAudioDCIS = `
 
 export const introAudioBctSm = `
 您好，我是乳房外科小幫手，今天要陪您一起做一個重要的決定。
-當您被診斷為乳房原位癌或乳癌後，可能正在思考：「我應該選擇部分乳房切除合併前哨淋巴結切片，還是全乳房切除合併前哨淋巴結切片？
-請了解，不管接受部分乳房切除或是全乳房切除，是否需要後續藥物治療，主要是根據癌細胞的特性與期別來決定。<strong>並非全乳房切除後就不用接受後續追蹤及治療
-另外，如果是診斷乳癌，不管選擇乳房部分切除，或乳房全切除，都一定需要同時進行淋巴結切片。
+當您被診斷為乳房原位癌或乳癌後，可能正在思考：「我應該選擇部分乳房切除合併前哨淋巴結切片，還是全乳房切除合併前哨淋巴結切片？」
 這裡沒有正確答案，我會一步一步地引導您，幫您釐清您自己在意的事情。
-填完之後，我會根據您的回答，幫您整理出適合您的資訊，讓您更知道自己適合什麼樣的手術。
-評估的過程中，如果有問題，可以隨時點擊有我頭像的圓形按鈕，我會隨時回答您喔！
+說明的過程中，點擊閃爍燈泡，可以看更多資訊！點擊Youtube圖案，可以看多更多補充影片說明！
+評估的過程中，如果有問題，可以在我說明完後點擊我的頭像，我會隨時回答您喔！
+我會根據您的想法，幫您整理出適合您的資訊，讓您更知道自己適合什麼樣的手術。
 準備好了嗎？那我們就一起開始吧！
 `;
 
 // ── HTML intro panels (rendered via dangerouslySetInnerHTML) ──
 
-export const introTextBctSm = ``;
+export const introTextBctSm = `
+<p><strong>使用說明：</strong><br /><br />
+點擊 <span class="hint-trigger pulsing-hint hint-icon" style="width:16px;height:16px;font-size:0.9rem;line-height:0;vertical-align:2px;margin-right:1px;margin-bottom:1px;">💡</span>
+可以看到更多資訊<br /><br />
+點擊<img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube" style="height: 1.2em; vertical-align: middle; margin: 0 4px;" />可以看到更多補充說明影片<br /><br />
+點擊我的頭像<img src="${hintImages["helperinside"]}" alt="頭像" style="height: 1.5em; border-radius: 50%; vertical-align: middle; margin: 0 4px;" />可以隨時問我問題<br /><br />
+準備好了就讓我們一起開始吧！</p><br />
+`;
 
 export const introTextDCIS = `
 <p><strong>使用說明：</strong><br /><br />

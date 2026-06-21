@@ -45,7 +45,8 @@ export const topicDescriptions = {
     audio: introAudioDCIS,
   },
   bctsm: {
-    label: "部分乳房切除合併前哨淋巴結切片手術，還是全乳房切除合併前哨淋巴結切片手術？",
+    label:
+      "部分乳房切除合併前哨淋巴結切片手術，還是全乳房切除合併前哨淋巴結切片手術？",
     description: "適用於診斷為乳房原位癌或乳癌的病人。",
     content: introTextBctSm,
     audio: introAudioBctSm,
@@ -70,25 +71,80 @@ export const topicDescriptions = {
 // Output: { type: "BCT"|"SM", title: string, description: string }
 
 export const getBctSmResult = (finalAnswers) => {
-  const isAppearanceImportant = finalAnswers["Q_APPEARANCE"]?.includes("很重要");
-  const isWantRecon = finalAnswers["Q_RECONSTRUCTION"]?.includes("有意願");
-  const isAcceptingReop = finalAnswers["Q_REOPERATION"]?.includes("可以接受");
+  const smAppearanceAnswer = finalAnswers["SM_B1_OP"];
+  // 外觀非常重要（第三選項）→ 傾向 BCT
+  const isAppearanceImportant = smAppearanceAnswer?.includes("非常重要");
+  // 有意願考慮重建（第二選項）
+  const isWantRecon = smAppearanceAnswer?.includes("有意願考慮重建");
+  const isAcceptingReop = finalAnswers["BCT_A2_MARGIN"]?.includes("可以接受");
+  // 排程或副作用任一有顧慮 → 視為對放療有顧慮
+  const isRejectingRadSchedule =
+    finalAnswers["BCT_A5_RADIATION"]?.includes("壓力");
+  const isRejectingRadSideEffect =
+    finalAnswers["BCT_A5_SIDEEFFECT"]?.includes("顧慮");
+  const isRejectingRad = isRejectingRadSchedule || isRejectingRadSideEffect;
 
-  // Any radiation-related "不想" → patient rejects radiation
-  const isRejectingRad =
-    finalAnswers["Q_RADIATION_TIME"]?.includes("不想") ||
-    finalAnswers["Q_RADIATION_SIDE_EFFECT_SKIN"]?.includes("不想") ||
-    finalAnswers["Q_RADIATION_SIDE_EFFECT_HEARTLUNG"]?.includes("不想");
+  const reconSuffix = isWantRecon ? "合併重建" : "";
 
-  const reconSuffix = isWantRecon || isAppearanceImportant ? "合併重建" : "";
+  // ── 選擇摘要 ──
+  const summaryItems = [];
 
-  // Case 1: rejects radiation → SM (BCT always requires radiation)
+  if (smAppearanceAnswer) {
+    if (smAppearanceAnswer.includes("非常重要")) {
+      summaryItems.push("✅ 希望盡量保留<strong>原本的乳房外觀</strong>，對您來說非常重要");
+    } else if (smAppearanceAnswer.includes("有意願考慮重建")) {
+      summaryItems.push("✅ 能接受外觀改變，有意願考慮<strong>乳房重建</strong>（需自費）");
+    } else {
+      summaryItems.push("✅ 能接受<strong>外觀平整</strong>，不考慮重建");
+    }
+  }
+
+  const reopAnswer = finalAnswers["BCT_A2_MARGIN"];
+  if (reopAnswer) {
+    summaryItems.push(
+      reopAnswer.includes("可以接受")
+        ? "✅ 能接受<strong>邊緣不足再開一次刀</strong>的可能（約兩成機率）"
+        : "⚠️ 不想承擔<strong>邊緣不足再開一次刀</strong>的可能",
+    );
+  }
+
+  const radScheduleAnswer = finalAnswers["BCT_A5_RADIATION"];
+  if (radScheduleAnswer) {
+    summaryItems.push(
+      radScheduleAnswer.includes("可以接受")
+        ? "✅ 能接受<strong>每天到醫院的放療排程</strong>（4～8 週）"
+        : "⚠️ <strong>每天往返的放療排程</strong>讓您感到壓力",
+    );
+  }
+
+  const radSideEffectAnswer = finalAnswers["BCT_A5_SIDEEFFECT"];
+  if (radSideEffectAnswer) {
+    summaryItems.push(
+      radSideEffectAnswer.includes("可以接受")
+        ? "✅ 能接受<strong>放療的可能副作用</strong>（皮膚反應、心肺、疲倦）"
+        : "⚠️ <strong>放療的副作用</strong>讓您感到顧慮",
+    );
+  }
+
+  const summaryHtml =
+    summaryItems.length > 0
+      ? `<p><strong>您的選擇摘要：</strong></p><ul style="text-align:left;padding-left:1.2em;line-height:2">${summaryItems.map((s) => `<li>${s}</li>`).join("")}</ul><br/>`
+      : "";
+
+  // Case 1: rejects radiation → SM (BCT侵襲性幾乎必做放療)
   if (isRejectingRad) {
+    const radConcerns = [];
+    if (isRejectingRadSchedule) radConcerns.push("每天往返醫院的放療排程");
+    if (isRejectingRadSideEffect) radConcerns.push("放療可能帶來的副作用");
+    const radConcernText = radConcerns.join("與");
+    const avoidText = [];
+    if (isRejectingRadSchedule) avoidText.push("每日往返的放療排程");
+    if (isRejectingRadSideEffect) avoidText.push("放療副作用的風險");
     return {
       type: "SM",
       title: `建議方案：全乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-      description:
-        "由於您對<b>放射線治療</b>有較多顧慮，而「部分乳房切除手術」必須搭配放療。因此，選擇全乳房切除能避開長期的放療療程與副作用，較符合您的需求。",
+      description: `${summaryHtml}由於您對<b>${radConcernText}</b>有顧慮，而「部分乳房切除手術」侵襲性乳癌幾乎必須搭配放療。因此，選擇全乳房切除能讓您避開${avoidText.join("與")}，較符合您的需求。`,
+      flowChart: hintImages["sm_slnb"],
     };
   }
 
@@ -98,16 +154,16 @@ export const getBctSmResult = (finalAnswers) => {
       return {
         type: "BCT",
         title: `建議方案：部分乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-        description:
-          "您在意乳房外觀，且願意承擔因邊緣不乾淨而需要再次手術的可能性與配合放療。<b>部分乳房切除</b>能最大程度保留您的自然胸型，是您的理想選擇。",
+        description: `${summaryHtml}您在意乳房外觀，且願意承擔因邊緣不乾淨而需要再次手術的可能性與配合放療。<b>部分乳房切除</b>能最大程度保留您的自然胸型，是您的理想選擇。`,
+        flowChart: hintImages["bct_slnb"],
       };
     }
     // Wants appearance preserved but refuses re-operation → SM + reconstruction
     return {
       type: "SM",
       title: `建議方案：全乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-      description:
-        "您雖然在意乳房外觀，但不希望承擔因邊緣不乾淨而需要再次手術的可能性。全乳房切除可以確保邊緣乾淨，若搭配<b>乳房重建</b>，可同時滿足您對外觀的要求。",
+      description: `${summaryHtml}您雖然在意乳房外觀，但不希望承擔因邊緣不乾淨而需要再次手術的可能性。全乳房切除可以確保邊緣乾淨，若搭配<b>乳房重建</b>，可同時滿足您對外觀的要求。`,
+      flowChart: hintImages["sm_slnb"],
     };
   }
 
@@ -115,7 +171,7 @@ export const getBctSmResult = (finalAnswers) => {
   return {
     type: "SM",
     title: `建議方案：全乳房切除及前哨淋巴結切片手術${reconSuffix}`,
-    description:
-      "既然外觀不是您的首要考量，<b>全乳房切除</b>可以確保邊緣乾淨，且視病理情況有機會不需進行放射線治療，使治療流程相對簡化、安心。",
+    description: `${summaryHtml}既然外觀不是您的首要考量，<b>全乳房切除</b>可以確保邊緣乾淨，且視病理情況有機會不需進行放射線治療，使治療流程相對簡化、安心。`,
+    flowChart: hintImages["sm_slnb"],
   };
 };

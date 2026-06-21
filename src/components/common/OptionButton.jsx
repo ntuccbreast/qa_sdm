@@ -1,8 +1,9 @@
 import React from "react";
 import ToggleButton from "@mui/material/ToggleButton";
+import Tooltip from "@mui/material/Tooltip";
 
-const OptionButton = ({ label, isSelected, isDisabled, onClick }) => {
-  return (
+const OptionButton = ({ label, isSelected, isDisabled, onClick, tooltip, style }) => {
+  const button = (
     <ToggleButton
       disableRipple
       value={label}
@@ -11,8 +12,8 @@ const OptionButton = ({ label, isSelected, isDisabled, onClick }) => {
       onChange={onClick} // ToggleButton 使用 onChange
       fullWidth
       sx={{
-        maxWidth: "480px",        // 👈 跟 Card 一樣寬，閱讀體驗最舒適
-        margin: "0 auto 12px auto", // 👈 置中並維持間距
+        maxWidth: "480px",
+        margin: "0 auto 12px auto",
         display: "flex",
         justifyContent: "flex-start",
         padding: "16px",
@@ -23,6 +24,7 @@ const OptionButton = ({ label, isSelected, isDisabled, onClick }) => {
         border: "1px solid #ddd !important",
         marginBottom: "12px",
         transition: "all 0.2s ease",
+        ...style,
 
         // 選中狀態
         "&.Mui-selected": {
@@ -48,6 +50,19 @@ const OptionButton = ({ label, isSelected, isDisabled, onClick }) => {
       {label}
     </ToggleButton>
   );
+
+  if (tooltip) {
+    return (
+      // span wrapper needed because Tooltip requires a non-disabled child to fire events
+      <Tooltip title={tooltip} placement="top" arrow>
+        <span style={{ display: "block", maxWidth: "480px", margin: "0 auto" }}>
+          {button}
+        </span>
+      </Tooltip>
+    );
+  }
+
+  return button;
 };
 
 export default OptionButton;
