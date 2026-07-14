@@ -21,8 +21,8 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "gh-pages": "^6.3.0",
-    "typescript": "^5.0.0"
-    "eslint-plugin-react-hooks": "^4.6.0",
+    "typescript": "^5.0.0",
+    "eslint-plugin-react-hooks": "^4.6.0"
   },
   "engines": {
     "node": "20.x"
